@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sign in | {{ portal_name }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+</head>
+<body>
+  <main class="login-shell">
+    <section class="access-panel" aria-labelledby="login-title">
+      <header class="brand-row">
+        <span class="brand-mark" aria-hidden="true">{{ portal_mark }}</span>
+        <div>
+          <strong>{{ portal_name }}</strong>
+          <span>{{ portal_context }}</span>
+        </div>
+      </header>
+
+      <div class="login-copy">
+        <p class="eyebrow">Restricted console</p>
+        <h1 id="login-title">Sign in to continue</h1>
+        <p>{{ portal_description }}</p>
+      </div>
+
+      {% if error %}<div class="login-error" role="alert">{{ error }}</div>{% endif %}
+
+      <form method="post" action="{{ url_for('dashboard_login') }}" class="login-form">
+        <input type="hidden" name="next" value="{{ next_path }}">
+        <label for="username">Username</label>
+        <input id="username" name="username" type="text" autocomplete="username" value="{{ username }}" required autofocus>
+
+        <div class="password-label">
+          <label for="password">Password</label>
+          <button id="passwordToggle" type="button" aria-controls="password" aria-pressed="false">Show</button>
+        </div>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+        <label class="remember-row">
+          <input name="remember" type="checkbox"{% if remember %} checked{% endif %}>
+          <span>Remember this browser for {{ remember_days }} days</span>
+        </label>
+
+        <button class="submit-button" type="submit">Sign in</button>
+      </form>
+
+      <footer>
+        <span class="status-dot" aria-hidden="true"></span>
+        Secure operator access
+      </footer>
+    </section>
+  </main>
+  <script src="{{ url_for('static', filename='login.js') }}" defer></script>
+</body>
+</html>

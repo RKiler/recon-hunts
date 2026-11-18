@@ -1,0 +1,65 @@
+.ai-search-stack { min-width: 0; display: grid; grid-template-columns: minmax(220px, .8fr) minmax(300px, 1.2fr); gap: 8px; }
+.ai-search-stack .omnibar, .ai-search-stack .ai-omnibar { max-width: none; }
+.ai-omnibar { min-width: 0; height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 5px 0 11px; border: 1px solid var(--line, #223044); border-radius: 7px; background: #0c121a; color: var(--muted, #8ea0b5); }
+.ai-omnibar:focus-within { border-color: var(--accent, #38bdf8); box-shadow: 0 0 0 3px rgba(56,189,248,.12); }
+.ai-omnibar svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; color: var(--accent, #38bdf8); }
+.ai-omnibar input { min-width: 0; width: 100%; height: 36px; padding: 0; border: 0; outline: 0; background: transparent; color: var(--text, #e7edf5); }
+.ai-omnibar button { width: 30px; height: 30px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 5px; background: transparent; color: var(--accent, #38bdf8); cursor: pointer; }
+.ai-assistant-toggle { position: fixed; right: 18px; bottom: 18px; z-index: 95; width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid rgba(56,189,248,.45); border-radius: 7px; background: #17242a; color: #9ed9e4; box-shadow: 0 12px 35px rgba(0,0,0,.4); cursor: pointer; }
+.ai-assistant-toggle:hover { background: #1d3037; }
+.ai-assistant-toggle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.ai-assistant-toggle.drawer-open { opacity: 0; pointer-events: none; }
+.ai-assistant-toggle > span { position: absolute; top: -4px; right: -4px; width: 9px; height: 9px; border: 2px solid var(--bg, #090d12); border-radius: 50%; background: var(--orange, #fb923c); }
+.ai-assistant-backdrop { position: fixed; inset: 0; z-index: 88; background: rgba(0,0,0,.48); }
+.ai-assistant-drawer { position: fixed; inset: 0 0 0 auto; z-index: 90; width: min(460px, 100vw); display: grid; grid-template-rows: auto auto auto minmax(0, 1fr) auto; border-left: 1px solid var(--line-2, #2c3d55); background: #0d1117; color: var(--text, #e7edf5); box-shadow: -18px 0 42px rgba(0,0,0,.45); transform: translateX(102%); visibility: hidden; transition: transform .2s ease, visibility .2s; }
+.ai-assistant-drawer.open { transform: translateX(0); visibility: visible; }
+.ai-drawer-head { min-height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line, #223044); background: #111821; }
+.ai-drawer-head > div:first-child { min-width: 0; display: grid; gap: 2px; }
+.ai-drawer-head span { color: var(--accent, #38bdf8); font-size: 9px; font-weight: 750; text-transform: uppercase; }
+.ai-drawer-head strong { font-size: 15px; }
+.ai-drawer-head small { color: var(--muted, #8ea0b5); font-size: 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ai-head-actions { display: flex; gap: 6px; }
+.ai-head-actions button { width: 31px; height: 31px; display: grid; place-items: center; padding: 0; border: 1px solid var(--line, #223044); border-radius: 6px; background: #0c121a; color: var(--muted, #8ea0b5); cursor: pointer; }
+.ai-head-actions svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.ai-status-row { min-height: 34px; display: flex; align-items: center; gap: 7px; padding: 7px 14px; border-bottom: 1px solid var(--line, #223044); color: var(--muted, #8ea0b5); font-size: 10px; }
+.ai-status-row #aiModelName { margin-left: auto; color: var(--faint, #627287); }
+.ai-status-row .health-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; }
+.ai-status-row .health-dot.error { background: #f87171; }
+.ai-messages { min-height: 0; overflow-y: auto; padding: 14px; scrollbar-color: var(--line-2, #2c3d55) transparent; }
+.ai-empty { height: 100%; min-height: 180px; display: grid; place-content: center; justify-items: center; gap: 9px; color: var(--muted, #8ea0b5); }
+.ai-empty svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.8; color: var(--accent, #38bdf8); }
+.ai-empty strong { font-size: 11px; }
+.ai-exchange { display: grid; gap: 8px; padding: 0 0 16px; }
+.ai-message { min-width: 0; padding: 10px 11px; border: 1px solid var(--line, #223044); border-radius: 6px; background: #101722; }
+.ai-message.user { margin-left: 38px; border-color: rgba(96,165,250,.3); background: rgba(96,165,250,.1); }
+.ai-message.assistant { margin-right: 14px; border-color: rgba(56,189,248,.28); }
+.ai-message > span { display: block; margin-bottom: 6px; color: var(--faint, #627287); font-size: 8px; font-weight: 750; text-transform: uppercase; }
+.ai-message p, .ai-answer-text { margin: 0; color: #dbe5ef; font-size: 11px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ai-answer-group { margin-top: 11px; padding-top: 9px; border-top: 1px solid var(--line, #223044); }
+.ai-answer-group > strong { display: block; margin-bottom: 6px; color: var(--muted, #8ea0b5); font-size: 8px; text-transform: uppercase; }
+.ai-answer-group ul { margin: 0; padding-left: 17px; color: #cbd5e1; font-size: 10px; line-height: 1.5; }
+.ai-answer-group.muted li { color: var(--muted, #8ea0b5); }
+.ai-ref-list { display: flex; flex-wrap: wrap; gap: 5px; }
+.ai-ref-list a, .ai-ref-list span { max-width: 100%; padding: 4px 6px; border: 1px solid var(--line, #223044); border-radius: 5px; color: var(--accent, #38bdf8); background: #0a1017; font: 8px ui-monospace, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ai-suggestions { display: grid; gap: 5px; margin-top: 10px; }
+.ai-suggestions button { padding: 7px 8px; border: 1px solid var(--line, #223044); border-radius: 5px; background: #0a1017; color: var(--muted, #8ea0b5); text-align: left; font-size: 9px; cursor: pointer; }
+.ai-wait { display: flex; align-items: center; gap: 7px; color: var(--muted, #8ea0b5); font-size: 10px; }
+.ai-wait i { width: 11px; height: 11px; border: 2px solid var(--line-2, #2c3d55); border-top-color: var(--accent, #38bdf8); border-radius: 50%; animation: ai-spin .75s linear infinite; }
+.ai-compose { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; padding: 11px; border-top: 1px solid var(--line, #223044); background: #111821; }
+.ai-compose textarea { width: 100%; min-height: 66px; max-height: 160px; padding: 9px 10px; resize: vertical; border: 1px solid var(--line, #223044); border-radius: 6px; background: #0a1017; color: var(--text, #e7edf5); font: 11px/1.4 inherit; }
+.ai-compose button { min-width: 58px; height: 36px; border: 1px solid rgba(56,189,248,.4); border-radius: 6px; background: rgba(56,189,248,.16); color: #bae6fd; cursor: pointer; }
+.ai-history-panel { min-height: 0; overflow-y: auto; padding: 10px; border-bottom: 1px solid var(--line, #223044); background: #0b1017; }
+.ai-history-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 2px 2px 9px; }
+.ai-history-toolbar strong { font-size: 11px; }
+.ai-history-toolbar button { border: 0; background: transparent; color: #fca5a5; font-size: 9px; cursor: pointer; }
+.ai-history-list { display: grid; gap: 6px; }
+.ai-history-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; align-items: center; padding: 8px; border: 1px solid var(--line, #223044); border-radius: 6px; background: #101722; }
+.ai-history-open { min-width: 0; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; }
+.ai-history-open strong, .ai-history-open span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ai-history-open strong { font-size: 10px; }
+.ai-history-open span { margin-top: 3px; color: var(--muted, #8ea0b5); font-size: 8px; }
+.ai-history-delete { width: 28px; height: 28px; border: 1px solid var(--line, #223044); border-radius: 5px; background: #0a1017; color: #fca5a5; cursor: pointer; }
+.ai-selected-note { padding: 7px 14px; border-bottom: 1px solid var(--line, #223044); color: var(--muted, #8ea0b5); background: rgba(56,189,248,.05); font-size: 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@keyframes ai-spin { to { transform: rotate(360deg); } }
+@media (max-width: 1080px) { .ai-search-stack { grid-template-columns: 1fr; } }
+@media (max-width: 720px) { html, body { max-width: 100%; overflow-x: hidden; } .ai-assistant-drawer { width: 100vw; } .ai-message.user { margin-left: 18px; } .ai-message.assistant { margin-right: 0; } }

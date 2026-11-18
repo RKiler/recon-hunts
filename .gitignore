@@ -1,0 +1,63 @@
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+config.yaml
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+serviceAccountKey.json
+cookies.txt
+auth_cookies/
+hunt_credentials/
+hunt_login_signals/
+
+# Runtime and collected data
+*.db
+*.sqlite
+*.sqlite3
+*.har
+*.log
+logs/
+exports/
+evidence/
+reports/
+requests/
+screenshots/
+cloud_inventory/
+wordlists/
+test-results/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+.venv/
+venv/
+
+# JavaScript
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build, editor, and OS artifacts
+build/
+dist/
+.cache/
+*.tmp
+*.temp
+*.swp
+*.bak
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

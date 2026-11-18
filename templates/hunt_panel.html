@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="data:,">
+  <title>Independent Hunts | Recon</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='hunt_panel.css', v='9') }}">
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="identity">
+        <a class="brand" href="/">RECON</a>
+        <span class="divider"></span>
+        <strong>Independent hunts</strong>
+      </div>
+      <nav aria-label="Workspace">
+        <a href="/">Dashboard</a>
+        <a href="/research">Research</a>
+        <a class="current" href="/hunts">Hunts</a>
+        <a href="/agentic">Agentic</a>
+        <a href="/hackbot">HackBot</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="launcher" aria-labelledby="launchTitle">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">HUNT CONTROL</span>
+            <h1 id="launchTitle">Start a domain hunt</h1>
+          </div>
+          <span class="status-note" id="notice" role="status" aria-live="polite"></span>
+        </div>
+        <form id="huntForm" class="launch-form">
+          <label class="field domain-field">Root domain
+            <select id="domainSelect" required>
+              <option value="">Select domain</option>
+              {% for domain in domains %}
+              <option value="{{ domain.id }}" {% if initial_domain_id == domain.id %}selected{% endif %}>{{ domain.domain }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <fieldset class="mode-field">
+            <legend>Mode</legend>
+            <div class="segmented">
+              <label><input type="radio" name="mode" value="one_time" checked><span>One-time</span></label>
+              <label><input type="radio" name="mode" value="continuous"><span>Continuous</span></label>
+            </div>
+          </fieldset>
+          <label class="field limit-field">Records per pass
+            <input id="recordsPerPass" type="number" min="100" max="10000" value="5000" required title="Stored recon rows examined per pass; Codex receives a ranked summary and the full packet file">
+          </label>
+          <button class="primary" id="startButton" type="submit">Start hunt</button>
+          <label class="field data-source-field">Recon data
+            <select id="dataSource"><option value="all">All stored data</option><option value="delta">Selected delta scans</option></select>
+          </label>
+          <label class="field data-scope-field">Investigation focus
+            <select id="dataScope"><option value="all">All signals in selected data</option><option value="context">Application context only</option></select>
+          </label>
+          <div class="delta-scan-field" id="deltaScanPanel" hidden>
+            <div class="scan-list-heading"><span class="field-label">Delta scans</span><div><button id="latestTwoScans" type="button">Latest two</button><button id="clearScans" type="button">Clear</button></div></div>
+            <div id="deltaScans" class="scan-list" role="group" aria-label="Select delta scans"></div>
+          </div>
+          <label class="field context-field">Application context
+            <textarea id="applicationContext" rows="3" placeholder="Product model, roles, tenants, exact hosts or workflows to prioritize, testing scenarios, and exclusions. Do not enter secrets."></textarea>
+          </label>
+          <div class="accounts-field"><span class="field-label">Owned accounts for this hunt</span><div id="accountChoices" class="account-choices"></div></div>
+          <label class="scope-confirm autonomy-confirm"><input id="autonomousValidation" type="checkbox" checked><span>Automatically run queued, evidence-backed validation steps for this campaign. The worker still applies scope, request, fixture, and action limits; uncertain or reconciliation actions stop for review.</span></label>
+          <label class="scope-confirm autonomy-confirm"><input id="targetSignup" type="checkbox"><span>Allow owned target-application signup using the connected Gmail verification bridge, only when the program explicitly permits account registration. This never creates a Gmail account.</span></label>
+          <label class="scope-confirm"><input id="scopeConfirmed" type="checkbox" required><span>I confirm this root domain and its subdomains are authorized for testing under the program rules.</span></label>
+        </form>
+        <details class="credential-manager">
+          <summary>Manage owned accounts</summary>
+          <form id="credentialForm" class="credential-form" autocomplete="off">
+            <label class="field">Alias<input id="accountAlias" maxlength="80" placeholder="owner-a" required></label>
+            <label class="field">Exact host<input id="accountHost" maxlength="255" placeholder="app.example.com" required></label>
+            <label class="field">Role<input id="accountRole" maxlength="100" placeholder="Admin or member"></label>
+            <label class="field">Tenant / workspace<input id="accountTenant" maxlength="100" placeholder="Owned test tenant"></label>
+            <label class="field">Credential type<select id="accountType"><option value="cookie">Cookie header</option><option value="bearer">Bearer token</option><option value="header">Custom header</option><option value="login_file">Username/email and password file</option></select></label>
+            <label class="field custom-header" id="headerField" hidden>Header name<input id="accountHeader" maxlength="80" placeholder="X-Test-Token"></label>
+            <label class="field secret-field" id="secretField">Credential value<input id="accountSecret" type="password" autocomplete="new-password" maxlength="16384" required></label>
+            <label class="field credential-path-field" id="credentialPathField" hidden>Username/email and password JSON path<input id="accountCredentialPath" type="text" autocomplete="off" placeholder="/root/codex_artifacts/hunt_credentials/imports/owner.json" title="Owned JSON file containing password and either email or username in the private imports directory; permissions are secured on import"></label>
+            <label class="scope-confirm account-confirm"><input id="accountAuthorized" type="checkbox" required><span>This is an authorized account for this exact host.</span></label>
+            <button class="primary" type="submit">Add account</button>
+          </form>
+        </details>
+      </section>
+
+      <div class="main-layout">
+        <aside class="run-sidebar" aria-label="Hunt runs">
+          <div class="pane-heading"><h2>Runs</h2><button id="reloadRuns" type="button">Refresh</button></div>
+          <div id="runList" class="run-list" aria-live="polite"><p class="empty">Loading runs...</p></div>
+        </aside>
+
+        <section class="run-detail" aria-label="Selected hunt">
+          <div class="pane-heading detail-heading">
+            <div><span class="eyebrow" id="runMode">SELECT A RUN</span><h2 id="runTitle">Hunt activity</h2></div>
+            <div class="detail-actions">
+              <button id="toggleStatus" type="button" disabled>Pause hunt</button>
+              <button id="refreshCandidates" type="button" disabled>Queue next pass</button>
+            </div>
+          </div>
+          <div id="runMetadata" class="run-metadata"></div>
+          <div id="humanLoginPanel" class="human-login-panel" hidden>
+            <div class="human-login-heading"><h3>Account login</h3><a href="http://127.0.0.1:6080/vnc.html?autoconnect=true&amp;resize=scale" target="_blank" rel="noopener noreferrer">Open VNC through SSH tunnel</a></div>
+            <div id="humanLoginAccounts" class="human-login-accounts"></div>
+          </div>
+          <details class="run-context" id="runContextDetails">
+            <summary>Hunt context and accounts</summary>
+            <label class="field">Recon data<select id="runDataSource"><option value="all">All stored data</option><option value="delta">Selected delta scans</option></select></label>
+            <div class="delta-scan-field" id="runDeltaScanPanel" hidden><span class="field-label">Delta scans</span><div id="runDeltaScans" class="scan-list" role="group" aria-label="Selected hunt delta scans"></div></div>
+            <label class="field">Investigation focus<select id="runDataScope"><option value="all">All signals in selected data</option><option value="context">Application context only</option></select></label>
+            <label class="field">Application context<textarea id="runApplicationContext" rows="4"></textarea></label>
+            <div id="runAccountChoices" class="account-choices"></div>
+            <label class="scope-confirm autonomy-confirm"><input id="runAutonomousValidation" type="checkbox"><span>Automatically run queued, evidence-backed validation steps for this campaign. Uncertain or reconciliation actions stop for review.</span></label>
+            <label class="scope-confirm autonomy-confirm"><input id="runTargetSignup" type="checkbox"><span>Allow owned target-application signup through the Gmail verification bridge when program rules permit.</span></label>
+            <button id="saveRunContext" type="button">Save context</button>
+          </details>
+          <div class="summary" id="summary">
+            <div><span>Passes</span><strong>-</strong></div>
+            <div><span>Running</span><strong>-</strong></div>
+            <div><span>Review leads</span><strong>-</strong></div>
+            <div><span>Confirmed</span><strong>-</strong></div>
+            <div><span>Records examined</span><strong>-</strong></div>
+          </div>
+
+          <div class="content-heading"><h3>Recon coverage</h3><span>Stored records examined across passes</span></div>
+          <div class="table-scroll">
+            <table id="coverageTable"><thead><tr><th>Source</th><th>Examined</th><th>Cycle</th><th>State</th></tr></thead><tbody></tbody></table>
+          </div>
+
+          <div class="content-heading"><h3>OWASP Top 10:2025 mapping</h3><span>Recorded hypotheses only; no mapped signal means unassessed, not clear</span></div>
+          <div class="owasp-grid" id="owaspCoverage" aria-live="polite"></div>
+
+          <div class="content-heading jobs-heading">
+            <h3>Hunt passes</h3>
+            <label><span id="jobListCount"></span> Show <select id="jobFilter"><option value="all">All</option><option value="attention">With leads</option><option value="active">Queued or running</option><option value="done">Completed</option></select></label>
+          </div>
+          <div class="table-scroll jobs-scroll">
+            <table id="jobsTable"><thead><tr><th>Pass</th><th>State</th><th>Records</th><th>Leads</th><th>Confirmed</th><th>Summary / finished</th></tr></thead><tbody></tbody></table>
+          </div>
+          <div class="content-heading"><h3>Research ledger</h3><span>Durable hypotheses reconciled across passes</span></div>
+          <div class="table-scroll">
+            <table id="signalsTable"><thead><tr><th>Evidence</th><th>State</th><th>Asset and title</th><th>Next action / missing proof</th></tr></thead><tbody></tbody></table>
+          </div>
+          <div class="content-heading"><h3>Confirmed report drafts</h3><span>E3 findings with baseline, negative control, impact, reproduction, and evidence paths</span></div>
+          <div id="reportDrafts" class="report-drafts"></div>
+          <div class="content-heading"><h3>Validation actions</h3><span>Each action should have a baseline, negative control, impact goal, stop condition, and cleanup path</span></div>
+          <div class="table-scroll">
+            <table id="actionsTable"><thead><tr><th>State</th><th>Hypothesis / purpose</th><th>Controls and stop condition</th><th>Cleanup / result</th></tr></thead><tbody></tbody></table>
+          </div>
+          <p class="footnote">This hunt has its own worker, pass history, and evidence. It does not create or consume ordinary bug jobs. Pausing prevents new passes; a running pass finishes. A worker interruption during a target action marks it uncertain and pauses the campaign for reconciliation.</p>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script>
+    window.HUNT_PANEL = {{ {'domainId': initial_domain_id, 'csrf': csrf_token}|tojson }};
+  </script>
+  <script src="{{ url_for('static', filename='hunt_panel.js', v='9') }}" defer></script>
+</body>
+</html>

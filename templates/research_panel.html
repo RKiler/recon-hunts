@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="data:,">
+  <title>Research Workspace</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='research_panel.css', v='20260915-ffuf-hits') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='ai_assistant.css') }}">
+</head>
+<body>
+  <svg class="icon-sprite" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
+    <symbol id="i-bot" viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M9 11h.01M15 11h.01M8 16h8M12 3v4"/></symbol>
+    <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3M8 15h8"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="m8 9-4 3 4 3M16 9l4 3-4 3M14 5l-4 14"/></symbol>
+    <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M6 16V9a4 4 0 0 1 4-4h5"/></symbol>
+    <symbol id="i-radar" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 12 19 5M3 12h3M12 21v-3"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 3h7v7M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></symbol>
+    <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 9A7 7 0 0 1 18 6l2 6M17.9 15A7 7 0 0 1 6 18l-2-6"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1.2 1.2M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1.2-1.2"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M7 7l1 14h8l1-14M10 11v6M14 11v6"/></symbol>
+  </svg>
+
+  <div class="app-shell">
+    <aside class="global-nav" id="globalNav">
+      <button class="icon-button nav-close" id="navClose" title="Close navigation" aria-label="Close navigation"><svg><use href="#i-close"></use></svg></button>
+      <a class="brand" href="/research" aria-label="Research workspace">
+        <span class="brand-mark"><svg><use href="#i-target"></use></svg></span>
+        <span><strong>Recon</strong><small>Research workspace</small></span>
+      </a>
+
+      <nav aria-label="Primary navigation">
+        <p class="nav-label">Overview</p>
+        <a class="{{ 'active' if initial_section == 'overview' else '' }}" href="/research"><svg><use href="#i-home"></use></svg><span>Research overview</span></a>
+        <p class="nav-label">Intelligence</p>
+        <a class="{{ 'active' if initial_section == 'leads' else '' }}" href="/research/leads"><svg><use href="#i-target"></use></svg><span>Lead workspace</span></a>
+        <a class="{{ 'active' if initial_section == 'workers' else '' }}" href="/research/workers"><svg><use href="#i-bot"></use></svg><span>Codex workers</span></a>
+        <a class="{{ 'active' if initial_section == 'validation' else '' }}" href="/research/validation"><svg><use href="#i-flask"></use></svg><span>Validation queue</span></a>
+        <a class="{{ 'active' if initial_section == 'evidence' else '' }}" href="/research/evidence"><svg><use href="#i-file"></use></svg><span>Evidence library</span></a>
+        <a href="/hunts{% if initial_domain_id %}?domain_id={{ initial_domain_id }}{% endif %}"><svg><use href="#i-target"></use></svg><span>Hunts</span></a>
+        <a href="/agentic{% if initial_domain_id %}?domain_id={{ initial_domain_id }}{% endif %}"><svg><use href="#i-bot"></use></svg><span>Agentic Hunter</span></a>
+        <a href="/hackbot"><svg><use href="#i-bot"></use></svg><span>HackBot</span></a>
+        <p class="nav-label">Attack surface</p>
+        <a class="{{ 'active' if initial_section == 'endpoints' else '' }}" href="/research/endpoints"><svg><use href="#i-route"></use></svg><span>Endpoints</span></a>
+        <a class="{{ 'active' if initial_section == 'javascript' else '' }}" href="/research/javascript"><svg><use href="#i-code"></use></svg><span>JavaScript</span></a>
+        <a class="{{ 'active' if initial_section == 'ffuf' else '' }}" href="/research/ffuf"><svg><use href="#i-radar"></use></svg><span>FFUF intelligence</span></a>
+        <p class="nav-label">System</p>
+        <a href="/"><svg><use href="#i-external"></use></svg><span>Legacy dashboard</span></a>
+      </nav>
+
+      <div class="nav-foot">
+        <span class="health-dot"></span>
+        <span>Live recon data</span>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <button class="icon-button mobile-menu" id="mobileMenu" title="Toggle navigation" aria-label="Toggle navigation"><svg><use href="#i-menu"></use></svg></button>
+        <div class="topbar-title">
+          <div class="breadcrumbs"><a href="/research">Research</a><span>/</span><strong>{{ section_title }}</strong></div>
+          <h1>{{ section_title }}</h1>
+        </div>
+        <form class="ai-omnibar" id="aiSearchForm" role="search">
+          <svg><use href="#i-bot"></use></svg>
+          <input id="aiSearchInput" type="search" placeholder="Ask AI across recon data" autocomplete="off" maxlength="3000" aria-label="Ask AI across recon data">
+          <button class="icon-button" type="submit" title="Ask AI" aria-label="Ask AI"><svg><use href="#i-send"></use></svg></button>
+        </form>
+        <div class="top-actions">
+          <label class="scope-select"><span>Scope</span><select id="domainFilter" aria-label="Filter by root domain"><option value="">All domains</option></select></label>
+          <button class="button" id="refreshButton"><svg><use href="#i-refresh"></use></svg>Refresh</button>
+          <a class="button" href="/logout">Sign out</a>
+        </div>
+      </header>
+
+      <section class="summary-strip" aria-label="Lead summary">
+        <div><span>Attention</span><strong id="metricAttention">-</strong></div>
+        <div><span>Confirmed</span><strong id="metricConfirmed">-</strong></div>
+        <div><span>Review alerts</span><strong id="metricAlerts">-</strong></div>
+        <div><span>Worker</span><strong id="metricWorker" class="worker-state">-</strong></div>
+        <div><span>Running</span><strong id="metricRunning">-</strong></div>
+      </section>
+
+      {% if initial_section == 'leads' %}
+      <section class="research-grid" id="leadWorkspace">
+        <aside class="lead-queue" aria-label="Lead queue">
+          <div class="queue-head">
+            <div><strong>Lead queue</strong><span id="queueCount">Loading</span></div>
+            <button class="icon-button" id="queueRefresh" title="Refresh leads" aria-label="Refresh leads"><svg><use href="#i-refresh"></use></svg></button>
+          </div>
+          <div class="queue-filters">
+            <label class="search-box"><svg><use href="#i-search"></use></svg><input id="leadSearch" type="search" placeholder="Search target, class, endpoint" autocomplete="off"></label>
+            <div class="filter-row">
+              <select id="outcomeFilter" aria-label="Outcome filter">
+                <option value="attention">Needs attention</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="strong">Strong candidates</option>
+                <option value="manual">Manual review</option>
+                <option value="blocked">Blocked and local</option>
+                <option value="all">All possible</option>
+              </select>
+              <select id="analystStatusFilter" aria-label="Analyst status filter">
+                <option value="">Any analyst status</option>
+                <option value="new">New</option>
+                <option value="investigating">Investigating</option>
+                <option value="needs_operator">Needs operator</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="dismissed">Dismissed</option>
+              </select>
+            </div>
+          </div>
+          <div class="lead-list" id="leadList"><div class="loading-state"><span></span>Loading leads</div></div>
+        </aside>
+
+        <article class="lead-detail" id="leadDetail">
+          <div class="detail-empty" id="detailEmpty">
+            <svg><use href="#i-target"></use></svg>
+            <h2>Select a lead</h2>
+            <p>Choose a current lead to inspect its evidence, recon relationships, and decisive next test.</p>
+          </div>
+          <div id="detailContent" hidden>
+            <header class="detail-head">
+              <div class="detail-title-wrap">
+                <div class="eyebrow" id="detailEyebrow"></div>
+                <h2 id="detailTitle"></h2>
+                <button class="target-line" id="copyTarget" title="Copy affected target"><span id="detailTarget"></span><svg><use href="#i-copy"></use></svg></button>
+              </div>
+              <div class="detail-actions">
+                <button class="icon-button" id="bookmarkButton" title="Bookmark lead" aria-label="Bookmark lead"><svg><use href="#i-bookmark"></use></svg></button>
+                <button class="button" id="openTarget"><svg><use href="#i-external"></use></svg>Open target</button>
+                <button class="button" id="exportLead"><svg><use href="#i-download"></use></svg>Export</button>
+                <button class="button primary" id="queueValidation"><svg><use href="#i-flask"></use></svg>Queue validation</button>
+              </div>
+              <div class="badge-row" id="detailBadges"></div>
+            </header>
+
+            <div class="detail-layout">
+              <nav class="section-nav" id="sectionNav" aria-label="Lead sections"></nav>
+              <section class="section-content" id="sectionContent" aria-live="polite"></section>
+            </div>
+          </div>
+        </article>
+      </section>
+      {% else %}
+      <section class="module-workspace" id="moduleWorkspace" data-section="{{ initial_section }}">
+        <header class="module-header">
+          <div><span class="eyebrow">Research operations</span><h2>{{ section_title }}</h2><p>{{ section_summary }}</p></div>
+          <strong id="moduleCount">Loading</strong>
+        </header>
+        <div class="module-toolbar">
+          <label class="search-box"><svg><use href="#i-search"></use></svg><input id="moduleSearch" type="search" placeholder="Filter this research view" autocomplete="off"></label>
+          <select id="moduleStateFilter" aria-label="Filter records"><option value="">All records</option></select>
+        </div>
+        <div class="module-layout">
+          <section class="module-feed" id="moduleFeed" aria-label="Research records"><div class="loading-state"><span></span>Loading research data</div></section>
+          <article class="module-inspector" id="moduleInspector"><div class="detail-empty"><svg><use href="#i-target"></use></svg><h2>Select a record</h2><p>Choose an item to inspect its security context and next action.</p></div></article>
+        </div>
+      </section>
+      {% endif %}
+    </main>
+  </div>
+
+  <button class="ai-assistant-toggle" id="aiAssistantToggle" title="Open AI assistant" aria-label="Open AI assistant">
+    <svg><use href="#i-bot"></use></svg><span id="aiAssistantBadge" hidden></span>
+  </button>
+  <div class="ai-assistant-backdrop" id="aiAssistantBackdrop" hidden></div>
+  <aside class="ai-assistant-drawer" id="aiAssistantDrawer" aria-label="AI assistant" aria-hidden="true">
+    <header class="ai-drawer-head">
+      <div><span>Codex</span><strong id="aiAssistantTitle">AI assistant</strong><small id="aiAssistantScope">{{ section_title }}</small></div>
+      <div class="ai-head-actions">
+        <button class="icon-button" id="aiHistoryToggle" title="Conversation history" aria-label="Conversation history"><svg><use href="#i-history"></use></svg></button>
+        <button class="icon-button" id="aiClearThread" title="Clear current conversation" aria-label="Clear current conversation"><svg><use href="#i-trash"></use></svg></button>
+        <button class="icon-button" id="aiNewThread" title="New conversation" aria-label="New conversation"><svg><use href="#i-plus"></use></svg></button>
+        <button class="icon-button" id="aiAssistantClose" title="Close assistant" aria-label="Close assistant"><svg><use href="#i-close"></use></svg></button>
+      </div>
+    </header>
+    <div class="ai-status-row"><span class="health-dot" id="aiWorkerDot"></span><span id="aiWorkerStatus">Checking worker</span><span id="aiModelName"></span></div>
+    <div class="ai-selected-note" id="aiSelectedNote">No record selected · searching this domain and all recon categories</div>
+    <section class="ai-history-panel" id="aiHistoryPanel" hidden>
+      <div class="ai-history-toolbar"><strong>Conversation history</strong><button type="button" id="aiClearHistory">Clear scope history</button></div>
+      <div class="ai-history-list" id="aiHistoryList"></div>
+    </section>
+    <div class="ai-messages" id="aiMessages" aria-live="polite">
+      <div class="ai-empty"><svg><use href="#i-bot"></use></svg><strong>Ask about this view</strong></div>
+    </div>
+    <form class="ai-compose" id="aiAssistantForm">
+      <textarea id="aiAssistantInput" rows="3" maxlength="3000" placeholder="Ask about the selected record or this tab" aria-label="Ask about this research view"></textarea>
+      <button class="button primary" id="aiAssistantSubmit" type="submit"><svg><use href="#i-send"></use></svg>Ask</button>
+    </form>
+  </aside>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script>
+    window.RESEARCH_PANEL = {
+      initialJobId: {{ initial_job_id | tojson }},
+      initialDomainId: {{ initial_domain_id | tojson }},
+      initialSection: {{ initial_section | tojson }}
+    };
+  </script>
+  <script src="{{ url_for('static', filename='ai_assistant.js') }}" defer></script>
+  {% if initial_section == 'leads' %}
+  <script src="{{ url_for('static', filename='research_panel.js') }}" defer></script>
+  {% else %}
+  <script src="{{ url_for('static', filename='research_module.js', v='20260915-ffuf-hits') }}" defer></script>
+  {% endif %}
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="data:,">
+  <title>Agentic Hunter | Recon</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='agentic_panel.css', v='11') }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">RECON</a>
+    <span class="top-divider"></span>
+    <strong>Agentic Hunter</strong>
+    <nav aria-label="Workspace">
+      <a href="/">Dashboard</a>
+      <a href="/research">Research</a>
+      <a href="/hunts">Hunts</a>
+      <a class="current" href="/agentic">Agentic</a>
+      <a href="/hackbot">HackBot</a>
+    </nav>
+  </header>
+  <main>
+    <section class="control-band" aria-labelledby="pageTitle">
+      <div class="heading-line">
+        <div><span class="eyebrow">SECURITY RESEARCH</span><h1 id="pageTitle">Agentic Hunter</h1></div>
+        <span id="message" role="status" aria-live="polite"></span>
+      </div>
+      <div class="mode-tabs" role="tablist" aria-label="Action">
+        <button type="button" class="active" data-mode="hunt" role="tab" aria-selected="true">Hunt</button>
+        <button type="button" data-mode="recon" role="tab" aria-selected="false">Recon</button>
+      </div>
+      <form id="launchForm" class="launch-grid">
+        <label class="field">Root domain
+          <select id="domain" required>
+            <option value="">Select a root domain</option>
+            {% for item in domains %}<option value="{{ item.id }}" {% if item.id == initial_domain_id %}selected{% endif %}>{{ item.domain }}</option>{% endfor %}
+          </select>
+        </label>
+        <label class="field" id="targetHostField">Exact host (optional)
+          <input id="targetHost" type="text" inputmode="url" spellcheck="false" autocomplete="off" placeholder="sidekick.zapier.com">
+        </label>
+        <label class="field" id="dataSourceField">Recon data
+          <select id="dataSource">
+            <option value="recent_delta">Latest two completed delta scans</option>
+            <option value="all">All saved data (bounded newest batch)</option>
+          </select>
+        </label>
+        <label class="field" id="passCountField">Investigation batches
+          <select id="maxPasses">
+            <option value="1">1 batch · up to 8 leads</option>
+            <option value="2">2 batches · up to 16 leads</option>
+            <option value="4" selected>4 batches · up to 32 leads</option>
+            <option value="6">6 batches · up to 48 leads</option>
+            <option value="8">8 batches · up to 64 leads</option>
+            <option value="12">12 batches · up to 96 leads</option>
+          </select>
+        </label>
+        <label class="field" id="requestBudgetField">Hunt request ceiling
+          <input id="requestBudget" type="number" min="50" max="1200" step="50" value="300" required>
+        </label>
+        <label class="field focus-field" id="focusField">Investigation focus
+          <textarea id="focus" rows="2" placeholder="Product workflow, test accounts, exact trust boundary or bug classes to prioritize. Do not enter credentials."></textarea>
+        </label>
+        <div class="account-field" id="accountField"><span class="field-label">Owned accounts</span><div id="accountChoices" class="account-choices"></div></div>
+        <label class="scope-check"><input type="checkbox" id="scopeConfirmed" required><span>Current program rules authorize the selected root or exact host and action.</span></label>
+        <button type="submit" id="launchButton" class="primary">Start hunt</button>
+      </form>
+      <details id="accountManager" class="agentic-account-manager">
+        <summary>Manage owned accounts</summary>
+        <form id="accountForm" class="agentic-account-form" autocomplete="off">
+          <label class="field">Alias<input id="accountAlias" maxlength="80" required placeholder="sidekick-owner"></label>
+          <label class="field">Exact host<input id="accountHost" maxlength="255" required placeholder="sidekick.zapier.com"></label>
+          <label class="field">Role<input id="accountRole" maxlength="100" placeholder="Owner or member"></label>
+          <label class="field">Tenant / workspace<input id="accountTenant" maxlength="100" placeholder="Owned test tenant"></label>
+          <label class="field">Credential type<select id="accountType"><option value="login_file">Username/email and password</option><option value="manual_login">Manual VNC login</option><option value="cookie">Cookie header</option><option value="bearer">Bearer token</option><option value="header">Custom header</option></select></label>
+          <label class="field" id="accountEmailField">Email<input id="accountEmail" type="email" autocomplete="username"></label>
+          <label class="field" id="accountPasswordField">Password<input id="accountPassword" type="password" autocomplete="new-password"></label>
+          <label class="field" id="accountPathField">Or owned login JSON path<input id="accountPath" placeholder="/root/codex_artifacts/hunt_credentials/imports/owner.json" autocomplete="off"></label>
+          <label class="field" id="accountSecretField" hidden>Credential value<input id="accountSecret" type="password" autocomplete="new-password" maxlength="16384"></label>
+          <label class="field" id="accountHeaderField" hidden>Header name<input id="accountHeader" maxlength="80" placeholder="X-Test-Token"></label>
+          <label class="scope-check"><input id="accountAuthorized" type="checkbox" required><span>This is my authorized account for this exact host.</span></label>
+          <button class="primary" type="submit" id="addAccount">Add account</button>
+          <span id="accountMessage" role="status" aria-live="polite"></span>
+        </form>
+      </details>
+    </section>
+
+    <section class="workspace" aria-label="Runs and leads">
+      <aside class="run-pane">
+        <div class="section-head"><h2>Runs</h2><button type="button" id="refreshRuns" class="quiet">Refresh</button></div>
+        <div id="runList" class="run-list" aria-live="polite"></div>
+      </aside>
+      <div class="detail-pane">
+        <div class="section-head">
+          <div><span class="eyebrow" id="runEyebrow">SELECT A RUN</span><h2 id="runTitle">Investigation</h2></div>
+          <button type="button" id="pauseRun" class="quiet" hidden>Pause queued run</button>
+        </div>
+        <div id="runStats" class="stats"></div>
+        <section class="research-strip" aria-labelledby="researchTitle">
+          <div class="section-head"><h3 id="researchTitle">Product Research</h3><span id="productPages" class="muted"></span></div>
+          <p id="researchSummary" class="research-summary muted">No product model yet.</p>
+          <div id="researchFeatures" class="research-features"></div>
+          <p id="accountStatus" class="account-status muted"></p>
+          <div id="loginHandoff" class="login-handoff"></div>
+          <div id="classCoverage" class="class-coverage"></div>
+        </section>
+        <div class="section-head subhead"><h3>Leads</h3><span id="leadCount"></span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Signal</th><th>Asset</th><th>Source</th><th>State</th><th></th></tr></thead>
+            <tbody id="leadRows"><tr><td colspan="5" class="empty">Select a run.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+  <dialog id="leadDialog" aria-labelledby="leadDialogTitle">
+    <div class="lead-dialog-head">
+      <div><span class="eyebrow" id="leadDialogState">RECON SIGNAL</span><h2 id="leadDialogTitle">Lead details</h2></div>
+      <button type="button" id="closeLeadDialog" class="quiet" aria-label="Close lead details">Close</button>
+    </div>
+    <div class="lead-dialog-body">
+      <span id="leadDialogHost" hidden></span>
+      <div id="leadDetail" aria-live="polite"></div>
+      <div class="lead-validate">
+        <h3>Focused validation</h3>
+        <div id="leadAccounts" class="account-choices"></div>
+        <button type="button" id="leadAddAccount" class="quiet">Add account for this host</button>
+        <label class="scope-check"><input type="checkbox" id="leadScopeConfirmed"><span>I confirm this exact host and validation action are permitted by current program rules.</span></label>
+        <div class="lead-validate-actions"><span id="leadMessage" role="status" aria-live="polite"></span><button type="button" id="validateLead" class="primary">Queue validation</button></div>
+      </div>
+    </div>
+  </dialog>
+  <script id="agenticConfig" type="application/json">{{ {"csrf": csrf_token, "domainId": initial_domain_id}|tojson }}</script>
+  <script src="{{ url_for('static', filename='agentic_panel.js', v='11') }}" defer></script>
+</body>
+</html>

@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="data:,">
+  <title>HackBot | Recon</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='hackbot_panel.css', v='23') }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">RECON</a><span class="divider"></span><strong>HackBot</strong>
+    <nav aria-label="Workspace">
+      <a href="/">Dashboard</a><a href="/research">Research</a><a href="/hunts">Hunts</a>
+      <a href="/agentic">Agentic</a><a class="current" href="/hackbot">HackBot</a>
+    </nav>
+  </header>
+  <div class="shell">
+    <aside class="side" aria-label="HackBot navigation">
+      <div class="side-head"><span class="eyebrow">CONTROL PLANE</span><h2>HackBot</h2></div>
+      <nav>
+        <a href="/hackbot" data-section="overview">Overview</a>
+        <a href="/hackbot/targets" data-section="targets">Targets</a>
+        {% if hunt_ui_enabled %}<a href="/hackbot/hunt" data-section="hunt">Hunt</a>{% endif %}
+        <a href="/hackbot/accounts" data-section="accounts">Accounts</a>
+        <a href="/hackbot/sessions" data-section="sessions">Sessions</a>
+        <a href="/hackbot/traffic" data-section="traffic">Traffic</a>
+        <a href="/hackbot/objects" data-section="objects">Objects</a>
+        <a href="/hackbot/authorization" data-section="authorization">Authorization</a>
+        <a href="/hackbot/api" data-section="api">API / GraphQL</a>
+        <a href="/hackbot/research" data-section="research">Research</a>
+        <a href="/hackbot/planner" data-section="planner">Planner</a>
+        <a href="/hackbot/campaigns" data-section="campaigns">Campaigns</a>
+        <a href="/hackbot/deltas" data-section="deltas">Changes</a>
+        <a href="/hackbot/evaluation" data-section="evaluation">Evaluation</a>
+        <a href="/hackbot/behaviour" data-section="behaviour">Behaviour</a>
+        <a href="/hackbot/domxss" data-section="domxss">DOM XSS</a>
+        <a href="/hackbot/postmessage" data-section="postmessage">Messaging</a>
+        <a href="/hackbot/exposure" data-section="exposure">Exposure</a>
+        <a href="/hackbot/hypotheses" data-section="hypotheses">Hypotheses</a>
+        <a href="/hackbot/skills" data-section="skills">Skills</a>
+        <a href="/hackbot/plans" data-section="plans">Plans</a>
+        <a href="/hackbot/runs" data-section="runs">Runs</a>
+        <a href="/hackbot/validations" data-section="validations">Validations</a>
+        <a href="/hackbot/findings" data-section="findings">Findings</a>
+        <a href="/hackbot/reports" data-section="reports">Reports</a>
+        <a href="/hackbot/approvals" data-section="approvals">Approvals</a>
+        <a href="/hackbot/scope" data-section="scope">Scope</a>
+        <a href="/hackbot/burp" data-section="burp">Burp</a>
+      </nav>
+      <div class="side-foot"><span id="serviceState">Checking service</span></div>
+    </aside>
+    <main>
+      <div class="page-head">
+        <div><span class="eyebrow">BUG BOUNTY WORKSPACE</span><h1 id="pageTitle">Overview</h1></div>
+        <label class="target-picker" id="targetPicker">Target
+          <select id="targetSelect" aria-label="Target"><option value="">Select target</option></select>
+        </label>
+      </div>
+      <p id="message" role="status" aria-live="polite"></p>
+
+      <section id="overviewView" class="view" aria-label="Overview">
+        <div class="metrics" id="metrics"></div>
+        <div class="section-head"><h2>Recent activity</h2><button class="icon-button" id="refreshOverview" title="Refresh overview" aria-label="Refresh overview">&#8635;</button></div>
+        <div id="activity" class="activity"></div>
+      </section>
+
+      {% if hunt_ui_enabled %}
+      <section id="huntView" class="view" aria-label="Hunt" hidden>
+        <div id="huntContent"></div>
+      </section>
+      {% endif %}
+
+      <section id="evaluationView" class="view" aria-label="Synthetic evaluation" hidden>
+        <div class="section-head"><h2>Synthetic evaluation</h2><button class="icon-button" id="refreshEvaluation" type="button" title="Refresh evaluation" aria-label="Refresh evaluation">&#8635;</button></div>
+        <div id="evaluationState" class="context-line" role="status"></div>
+        <div class="filters">
+          <label>Suite<select id="evaluationSuite" aria-label="Evaluation suite"><option value="">All suites</option></select></label>
+          <label>Run<select id="evaluationRun" aria-label="Evaluation run"><option value="">Select run</option></select></label>
+        </div>
+        <div id="evaluationMetrics" class="metrics"></div>
+        <dl id="evaluationFacts" class="details"></dl>
+        <div class="section-head"><h3>Specialist yield</h3></div>
+        <div class="table-wrap"><table><thead><tr><th>Specialist</th><th>Coverage</th><th>Expected</th><th>Detected</th><th>Recall</th><th>Routing</th><th>Requests</th></tr></thead><tbody id="evaluationSpecialistRows"></tbody></table></div>
+        <div class="section-head"><h3>Model usage</h3></div>
+        <div class="table-wrap"><table><thead><tr><th>Lane</th><th>Role</th><th>Provider / model</th><th>Calls</th><th>Tokens</th><th>Latency</th><th>Quality</th></tr></thead><tbody id="evaluationModelRows"></tbody></table></div>
+        <div class="section-head"><h3>Advice comparison</h3></div>
+        <dl id="evaluationModelComparisonFacts" class="details"></dl>
+        <div class="table-wrap"><table><thead><tr><th>Primary</th><th>Challenger</th><th>Critic</th></tr></thead><tbody id="evaluationModelComparisonRows"></tbody></table></div>
+        <div class="section-head"><h3>Failure analysis</h3></div>
+        <dl id="evaluationFailureFacts" class="details"></dl>
+        <div class="section-head"><h3>Readiness gates</h3></div>
+        <div class="table-wrap"><table><thead><tr><th>Category</th><th>Outcome</th><th>Reason</th><th>Cases</th></tr></thead><tbody id="evaluationGateRows"></tbody></table></div>
+        <div class="section-head"><h3>Case outcomes</h3></div>
+        <div class="table-wrap"><table><thead><tr><th>Case</th><th>Trial</th><th>Status</th><th>Detected</th><th>False confirmed</th><th>Failure stage</th><th>Requests</th></tr></thead><tbody id="evaluationCaseRows"></tbody></table></div>
+        <button id="moreEvaluationCases" class="quiet" type="button" hidden>Load more</button>
+        <div class="section-head"><h3>Regression comparison</h3></div>
+        <div class="filters">
+          <label>Baseline<select id="evaluationBaseline" aria-label="Baseline run"><option value="">Select baseline</option></select></label>
+          <button id="compareEvaluation" class="quiet" type="button">Compare</button>
+        </div>
+        <dl id="evaluationComparison" class="details"></dl>
+      </section>
+
+      <section id="operationsView" class="view" aria-label="Operations" hidden>
+        <div class="section-head"><h2>Runtime status</h2><button class="icon-button" id="refreshOperations" title="Refresh operations" aria-label="Refresh operations">&#8635;</button></div>
+        <div id="operationsWarnings" role="status"></div>
+        <div class="metrics" id="operationsMetrics"></div>
+        <div class="section-head"><h3>Components and storage</h3></div>
+        <dl id="operationsDetails" class="details"></dl>
+        <div class="section-head"><h3>Backup</h3></div>
+        <div class="filters">
+          <button class="quiet operations-action" id="operationsBackupCreate" type="button">Create backup</button>
+          <label>Backup ID<input id="operationsBackupId" aria-label="Backup ID to verify" autocomplete="off" spellcheck="false" maxlength="32"></label>
+          <button class="quiet operations-action" id="operationsBackupVerify" type="button">Verify backup</button>
+        </div>
+        <div class="section-head"><h3>Retention</h3></div>
+        <div class="filters">
+          <button class="quiet operations-action" id="operationsRetentionPlan" type="button">Dry run</button>
+          <label class="policy-check"><input id="operationsRetentionConfirm" type="checkbox">Confirm deletion of reviewed orphan artifacts</label>
+          <button class="quiet operations-action" id="operationsRetentionRun" type="button" disabled>Run cleanup</button>
+        </div>
+        <div class="section-head"><h3>Anonymous browser profiles</h3></div>
+        <div class="filters">
+          <button class="quiet operations-action" id="operationsProfilePlan" type="button">Dry run</button>
+          <label class="policy-check"><input id="operationsProfileConfirm" type="checkbox">Confirm deletion of reviewed profiles</label>
+          <button class="quiet operations-action" id="operationsProfileRun" type="button" disabled>Run cleanup</button>
+        </div>
+        <div id="operationsMaintenance" class="context-line" role="status" aria-live="polite"></div>
+        <div id="operationsCandidates" class="scope-list" aria-label="Reviewed cleanup candidates"></div>
+      </section>
+
+      <section id="plannerView" class="view" aria-label="Planner" hidden>
+        <div class="section-head"><h2>Cross-specialist planner</h2><button id="refreshPlanner" class="icon-button" type="button" title="Refresh planner" aria-label="Refresh planner">&#8635;</button></div>
+        <form id="plannerStartForm" class="filters">
+          <label>Mode<select name="mode" required><option value="ANALYZE_ONLY">Analyze only</option><option value="PLAN_ONLY">Plan only</option><option value="BOUNDED_AUTONOMOUS">Bounded autonomous</option></select></label>
+          <label>Request budget<input name="requests" type="number" min="0" max="100" value="20" required></label>
+          <label>Browser budget<input name="browser_actions" type="number" min="0" max="50" value="12" required></label>
+          <label>Token budget<input name="tokens" type="number" min="0" max="20000" value="2000" required></label>
+          <label>Time (seconds)<input name="seconds" type="number" min="1" max="3600" value="300" required></label>
+          <button class="quiet" type="submit">Start planner run</button>
+        </form>
+        <div class="section-head"><h3>Runs</h3><div class="actions"><select id="plannerRunSelect" aria-label="Planner run"><option value="">Select run</option></select><button id="plannerPause" class="quiet" type="button">Pause</button><button id="plannerResume" class="quiet" type="button">Resume</button><button id="plannerCancel" class="quiet" type="button">Cancel</button></div></div>
+        <div id="plannerSummary" class="context-line"></div>
+        <div id="plannerMetrics" class="metrics"></div>
+        <div class="section-head"><h3>Candidate portfolio</h3><span class="muted">Priority ranks the next investigation, not likelihood of a bug.</span></div>
+        <div class="table-wrap"><table><thead><tr><th>Priority</th><th>Category</th><th>Specialist</th><th>Readiness</th><th>Risk</th><th>Requests</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead><tbody id="plannerCandidateRows"></tbody></table></div>
+        <div class="section-head"><h3>Task dependencies</h3></div>
+        <div class="table-wrap"><table><thead><tr><th>Priority</th><th>Task</th><th>Candidate</th><th>Depends on</th><th>Status</th><th>Result</th></tr></thead><tbody id="plannerTaskRows"></tbody></table></div>
+        <div class="section-head"><h3>Findings and research</h3></div>
+        <div id="plannerLinks" class="plan-lines"></div>
+        <div class="section-head"><h3>Decision history</h3></div>
+        <div id="plannerEvents" class="activity"></div>
+      </section>
+
+      <section id="campaignsView" class="view" aria-label="Campaigns" hidden>
+        <div class="section-head"><h2>Campaigns</h2><button id="refreshCampaigns" class="icon-button" type="button" title="Refresh campaigns" aria-label="Refresh campaigns">&#8635;</button></div>
+        <form id="campaignStartForm" class="filters">
+          <label>Mode<select name="mode" required><option value="ANALYZE_ONLY">Analyze only</option><option value="PLAN_ONLY">Plan only</option><option value="BOUNDED_AUTONOMOUS">Bounded autonomous</option></select></label>
+          <label>Budget<select name="preset" id="campaignPreset"><option value="SMALL">Small</option><option value="STANDARD">Standard</option><option value="CUSTOM">Custom</option></select></label>
+          <div id="campaignCustomLimits" class="filters" hidden>
+            <label>Cycles<input name="max_cycles" type="number" min="1" max="8" value="2"></label>
+            <label>Time (seconds)<input name="seconds" type="number" min="30" max="14400" value="600"></label>
+            <label>Requests<input name="requests" type="number" min="0" max="400" value="20"></label>
+            <label>Browser actions<input name="browser_actions" type="number" min="0" max="160" value="8"></label>
+            <label>Research calls<input name="research_requests" type="number" min="0" max="8" value="1"></label>
+            <label>Tokens<input name="tokens" type="number" min="0" max="80000" value="2000"></label>
+            <label>Setup objects<input name="setup_objects" type="number" min="0" max="8" value="1"></label>
+            <label>Cleanup reserve<input name="cleanup_reserve" type="number" min="0" max="32" value="4"></label>
+          </div>
+          <button class="quiet" type="submit">Start campaign</button>
+        </form>
+        <div class="section-head"><h3>Target campaigns</h3><div class="actions"><label><input id="campaignShowArchived" type="checkbox"> Show archived</label><select id="campaignSelect" aria-label="Campaign"><option value="">Select campaign</option></select><button id="campaignPause" class="quiet" type="button">Pause</button><button id="campaignResume" class="quiet" type="button">Resume</button><button id="campaignCancel" class="quiet" type="button">Cancel</button></div></div>
+        <div class="table-wrap"><table><thead><tr><th>Target</th><th>Status</th><th>Mode</th><th>Started</th><th>Elapsed</th><th>Requests</th><th>Findings</th><th>Waiting reason</th><th></th></tr></thead><tbody id="campaignRows"></tbody></table></div>
+        <div id="campaignSummary" class="context-line" role="status"></div>
+        <div id="campaignMetrics" class="metrics"></div>
+        <div id="campaignCoverage" class="context-line"></div>
+        <div id="campaignOutcome" class="context-line"></div>
+        <div class="section-head"><h3>Cycles and work</h3></div>
+        <div class="table-wrap"><table><thead><tr><th>Cycle</th><th>Status</th><th>Package</th><th>Planner</th><th>Started</th></tr></thead><tbody id="campaignCycles"></tbody></table></div>
+        <div class="table-wrap"><table><thead><tr><th>Kind</th><th>Status</th><th>Child</th><th>Allocated</th><th>Updated</th></tr></thead><tbody id="campaignWork"></tbody></table></div>
+        <div class="section-head"><h3>Active tasks</h3></div>
+        <div class="table-wrap"><table><thead><tr><th>Task</th><th>Specialist</th><th>Status</th><th>Reason</th><th>Planner</th></tr></thead><tbody id="campaignTasks"></tbody></table></div>
+        <div class="section-head"><h3>Findings and follow-up</h3></div>
+        <div id="campaignLinks" class="plan-lines"></div>
+        <div class="section-head"><h3>Cleanup</h3></div>
+        <div id="campaignObjects" class="plan-lines"></div>
+        <div class="section-head"><h3>Timeline</h3></div>
+        <div id="campaignTimeline" class="activity"></div>
+      </section>
+
+      <section id="deltasView" class="view" aria-label="Continuous changes" hidden>
+        <div class="section-head"><h2>Continuous changes</h2><button id="refreshDeltas" class="icon-button" type="button" title="Refresh changes" aria-label="Refresh changes">&#8635;</button></div>
+        <div id="deltaMetrics" class="metrics"></div>
+        <div class="section-head"><h3>Target watch</h3><div class="actions"><button id="deltaCheckNow" class="quiet" type="button">Check now</button><button id="deltaPause" class="quiet" type="button">Pause</button><button id="deltaResume" class="quiet" type="button">Resume</button></div></div>
+        <div id="deltaWatchState" class="context-line" role="status"></div>
+        <form id="deltaSettingsForm" class="filters">
+          <label class="policy-check"><input name="enabled" type="checkbox">Enabled</label>
+          <label>Cadence<select name="cadence"><option value="HOURLY">Hourly</option><option value="SIX_HOURLY">Every 6 hours</option><option value="DAILY">Daily</option></select></label>
+          <label>Minimum relevance<input name="minimum_relevance" type="number" min="0" max="100" required></label>
+          <label>Daily campaign cap<input name="daily_campaign_cap" type="number" min="0" max="24" required></label>
+          <label>Request cap<input name="request_cap" type="number" min="0" max="40" required></label>
+          <label>Cooldown (hours)<input name="cooldown_hours" type="number" min="1" max="168" required></label>
+          <fieldset class="delta-specialists"><legend>Specialists</legend>
+            <label><input type="checkbox" name="specialist" value="AUTHORIZATION">Authorization</label>
+            <label><input type="checkbox" name="specialist" value="API_GRAPHQL">API / GraphQL</label>
+            <label><input type="checkbox" name="specialist" value="DOM_XSS">DOM XSS</label>
+            <label><input type="checkbox" name="specialist" value="POSTMESSAGE">Messaging</label>
+            <label><input type="checkbox" name="specialist" value="EXPOSURE">Exposure</label>
+          </fieldset>
+          <button class="quiet" type="submit">Save settings</button>
+        </form>
+        <div class="section-head"><h3>Delta candidates</h3><label>State <select id="deltaStatusFilter"><option value="">All</option><option value="CLASSIFIED">Classified</option><option value="CAMPAIGN_READY">Ready</option><option value="CAMPAIGN_STARTED">Campaign started</option><option value="DEFERRED">Deferred</option><option value="IGNORED">Ignored</option><option value="BLOCKED">Blocked</option><option value="SUPERSEDED">Superseded</option></select></label></div>
+        <div class="table-wrap"><table><thead><tr><th>Observed</th><th>Type</th><th>Location</th><th>Relevance</th><th>Specialists</th><th>State</th><th>Campaign</th><th>Findings</th><th></th></tr></thead><tbody id="deltaRows"></tbody></table></div>
+        <button id="moreDeltas" class="quiet" type="button" hidden>Load more</button>
+        <div id="deltaDetail" hidden>
+          <div class="section-head"><h3>Delta detail</h3><button id="closeDeltaDetail" class="icon-button" type="button" title="Close detail" aria-label="Close detail">&#10005;</button></div>
+          <dl id="deltaFacts" class="details"></dl>
+          <div id="deltaLinks" class="plan-lines"></div>
+          <div class="filters"><label>Campaign mode<select id="deltaCampaignMode"><option value="ANALYZE_ONLY">Analyze only</option><option value="PLAN_ONLY">Plan only</option><option value="BOUNDED_AUTONOMOUS">Bounded autonomous</option></select></label><button id="deltaCreateCampaign" class="quiet" type="button">Create campaign</button></div>
+        </div>
+      </section>
+
+      <section id="exposureView" class="view" aria-label="Exposure" hidden>
+        <div class="section-head"><h2>Exposure review</h2><button id="refreshExposure" class="icon-button" type="button" title="Refresh exposure candidates" aria-label="Refresh exposure candidates">&#8635;</button></div>
+        <div id="exposureMetrics" class="metrics"></div>
+        <div class="filters">
+          <label>Category<select id="exposureCategory"><option value="">All categories</option></select></label>
+          <label>State<select id="exposureStatus"><option value="">All states</option></select></label>
+          <button id="discoverExposureRecon" class="quiet" type="button">Review recon</button>
+          <button id="discoverExposureTraffic" class="quiet" type="button">Compare traffic</button>
+        </div>
+        <form id="exposureArtifactForm" class="filters">
+          <label>Captured artifact<select id="exposureArtifact" required></select></label>
+          <label>Inspect<select id="exposureArtifactKind"><option value="js">JavaScript</option><option value="source_map">Source map</option></select></label>
+          <button class="quiet" type="submit">Analyze</button>
+        </form>
+        <form id="exposureCaptureForm" class="filters">
+          <label>Captured response<select id="exposureCapture" required></select></label>
+          <button class="quiet" type="submit">Analyze response</button>
+        </form>
+        <form id="exposureFieldForm" class="filters">
+          <label>Owner read<select id="exposureFieldOwner" required></select></label>
+          <label>Member read<select id="exposureFieldMember" required></select></label>
+          <button class="quiet" type="submit">Compare fields</button>
+        </form>
+        <div class="table-wrap"><table><thead><tr><th>Priority</th><th>Category</th><th>Location</th><th>Source</th><th>State</th><th>Validation</th><th></th></tr></thead><tbody id="exposureCandidateRows"></tbody></table></div>
+        <button id="moreExposureCandidates" class="quiet" type="button" hidden>Load more</button>
+        <div id="exposureCandidateDetail" hidden>
+          <div class="section-head"><h2>Candidate detail</h2><button id="closeExposureCandidate" class="icon-button" type="button" title="Close candidate" aria-label="Close candidate">&#10005;</button></div>
+          <dl id="exposureCandidateFacts" class="details"></dl>
+          <div class="section-head"><h3>Source evidence</h3></div>
+          <div class="table-wrap"><table><thead><tr><th>Source</th><th>Record</th><th>Current</th><th>Evidence</th></tr></thead><tbody id="exposureSourceRows"></tbody></table></div>
+          <div id="exposurePlanLinks" class="actions"></div>
+          <button id="prepareExposureCandidate" class="quiet" type="button">Prepare investigation</button>
+          <form id="exposureReadForm" class="filters" hidden>
+            <label>Owned object<select id="exposureOwnedObject" name="test_object_id" required></select></label>
+            <label>Owner session<select id="exposureOwnerSession" name="owner_session_id" required></select></label>
+            <label id="exposureMemberLabel" hidden>Member session<select id="exposureMemberSession" name="member_session_id"></select></label>
+            <button class="quiet" type="submit">Bind owned read</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="postmessageView" class="view" aria-label="Messaging" hidden>
+        <div class="section-head"><h2>Messaging protocols</h2><button id="refreshPostmessage" class="icon-button" type="button" title="Refresh messaging" aria-label="Refresh messaging">&#8635;</button></div>
+        <div id="messageMetrics" class="metrics"></div>
+        <div class="section-head"><h2>Ranked JavaScript assets</h2><span id="messageInventoryState" class="muted"></span></div>
+        <div class="table-wrap"><table><thead><tr><th>Score</th><th>Host</th><th>Asset hash</th><th>Signals</th><th>Action</th></tr></thead><tbody id="messageAssetRows"></tbody></table></div>
+        <div class="section-head"><h2>Protocol candidates</h2></div>
+        <div class="table-wrap"><table><thead><tr><th>Priority</th><th>Message type</th><th>Origin</th><th>Source</th><th>Port / RPC</th><th>Status</th><th></th></tr></thead><tbody id="messageCandidateRows"></tbody></table></div>
+        <button id="moreMessageCandidates" class="quiet" type="button" hidden>Load more</button>
+        <div id="messageCandidateDetail" hidden>
+          <div class="section-head"><h2>Protocol detail</h2><button id="closeMessageCandidate" class="icon-button" type="button" title="Close candidate" aria-label="Close candidate">&#10005;</button></div>
+          <dl id="messageCandidateFacts" class="details"></dl>
+          <div id="messagePlanLinks" class="actions"></div>
+          <div class="section-head"><h3>Browser controls and proof</h3></div>
+          <div class="table-wrap"><table><thead><tr><th>Variant</th><th>Source</th><th>Capability</th><th>Messages / ports / RPC</th><th>Evidence</th></tr></thead><tbody id="messageProofRows"></tbody></table></div>
+          <form id="messageRouteForm" class="filters"><label>Observed page exchange ID<input name="exchange_id" maxlength="48" autocomplete="off" required placeholder="EXCHANGE-..."></label><button type="submit" class="quiet">Link page</button></form>
+          <div class="actions"><button id="prepareMessageCandidate" class="quiet" type="button">Prepare investigation</button><button id="runMessageInvestigation" class="quiet" type="button">Run investigation</button></div>
+          <form id="messageBindPlanForm" class="filters">
+            <label>Browser session<select name="browser_session_id" id="messageBrowserSession" required><option value="">Select session</option></select></label>
+            <label>Activation<select name="activation_type" id="messageActivationType" required><option value="">Select observed type</option></select></label>
+            <label>Port message<select name="port_type" id="messagePortType"><option value="">Same activation</option></select></label>
+            <label>Read-only RPC<select name="allowed_method" id="messageAllowedMethod"><option value="">No RPC call</option></select></label>
+            <button type="submit" class="quiet">Bind browser plan</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="domxssView" class="view" aria-label="DOM XSS" hidden>
+        <div class="section-head"><h2>DOM XSS</h2><button id="refreshDomxss" class="icon-button" type="button" title="Refresh DOM XSS" aria-label="Refresh DOM XSS">&#8635;</button></div>
+        <div id="domMetrics" class="metrics"></div>
+        <div class="section-head"><h2>Ranked JavaScript assets</h2><span id="domInventoryState" class="muted"></span></div>
+        <div class="table-wrap"><table><thead><tr><th>Score</th><th>Host</th><th>Asset hash</th><th>Signals</th><th>Action</th></tr></thead><tbody id="domAssetRows"></tbody></table></div>
+        <div class="section-head"><h2>Source-to-sink candidates</h2></div>
+        <div class="table-wrap"><table><thead><tr><th>Priority</th><th>Source</th><th>Check / transform</th><th>Sink</th><th>Status</th><th></th></tr></thead><tbody id="domCandidateRows"></tbody></table></div>
+        <button id="moreDomCandidates" class="quiet" type="button" hidden>Load more</button>
+        <div id="domCandidateDetail" hidden>
+          <div class="section-head"><h2>Candidate detail</h2><button id="closeDomCandidate" class="icon-button" type="button" title="Close candidate" aria-label="Close candidate">&#10005;</button></div>
+          <dl id="domCandidateFacts" class="details"></dl>
+          <div id="domPlanLinks" class="actions"></div>
+          <div class="section-head"><h3>Browser proof</h3></div>
+          <div class="table-wrap"><table><thead><tr><th>Variant</th><th>Marker</th><th>Context</th><th>Browser controls</th><th>Evidence</th></tr></thead><tbody id="domProofRows"></tbody></table></div>
+          <form id="domRouteForm" class="filters"><label>Observed page exchange ID<input name="exchange_id" maxlength="48" autocomplete="off" required placeholder="EXCHANGE-..."></label><button type="submit" class="quiet">Link page</button></form>
+          <div class="actions"><button id="prepareDomCandidate" class="quiet" type="button">Prepare investigation</button></div>
+          <form id="domBindPlanForm" class="filters">
+            <label>Browser session<select name="browser_session_id" id="domBrowserSession" required><option value="">Select session</option></select></label>
+            <label>Input<select name="input_kind" id="domInputKind"><option value="QUERY">Query</option><option value="FRAGMENT">Fragment</option></select></label>
+            <label>Parameter<input name="input_name" id="domInputName" maxlength="40" autocomplete="off" placeholder="next"></label>
+            <button type="submit" class="quiet">Bind browser plan</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="targetsView" class="view" aria-label="Targets" hidden>
+        <div id="targetSetup" class="target-setup" hidden>
+          <div class="section-head"><h2>Add authorized target</h2><button id="cancelTargetSetup" class="quiet" type="button">Back to targets</button></div>
+          <ol id="targetSetupSteps" class="setup-steps" aria-label="Setup progress">
+            <li>Target</li><li>Scope</li><li>Authorization</li><li>Autonomy</li><li>Rate</li><li>Review</li>
+          </ol>
+          <p id="targetSetupError" class="form-error" role="alert" hidden></p>
+          <form id="targetSetupForm" class="setup-form" novalidate>
+            <section data-setup-step="0"><h3>Basic target information</h3><div class="setup-grid">
+              <label>Name<input name="name" required maxlength="256" autocomplete="off" placeholder="Remote Sandbox"></label>
+              <label>Package ID<input name="id" required pattern="[a-z][a-z0-9_-]{0,63}" maxlength="64" autocomplete="off" placeholder="remote-sandbox"></label>
+              <label>Primary domain<input name="primary_domain" required maxlength="255" autocapitalize="off" spellcheck="false" placeholder="employ.remote-sandbox.com"></label>
+            </div></section>
+            <section data-setup-step="1" hidden><h3>Authorized scope</h3>
+              <p class="context-line">Only enter hosts explicitly authorized for testing. Recon does not grant scope.</p>
+              <div class="setup-grid"><div><h4>Authorized hosts</h4><div id="targetIncludeHosts" class="setup-rows"></div><button id="addTargetHost" class="quiet" type="button">+ Add host</button></div>
+              <div><h4>Excluded hosts</h4><div id="targetExcludeHosts" class="setup-rows"></div><button id="addTargetExclusion" class="quiet" type="button">+ Add exclusion</button></div></div>
+              <div class="setup-inline"><fieldset><legend>Schemes</legend><label><input type="checkbox" name="scheme_https" checked> HTTPS</label><label><input type="checkbox" name="scheme_http"> HTTP</label></fieldset>
+              <label>Allowed ports<input name="ports" required value="443" placeholder="443, 8443" inputmode="numeric"></label></div>
+            </section>
+            <section data-setup-step="2" hidden><h3>Authorization and program rules</h3>
+              <p class="context-line">Enter the actual program rules. This form does not create authorization.</p>
+              <div class="setup-grid"><label>Authorization source<select name="source_kind" required></select></label>
+                <label>Authorization reference<input name="source_reference" required maxlength="2048" placeholder="Program policy or authorization record"></label>
+                <label>Operator alias<input name="source_operator" required maxlength="128" placeholder="researcher alias"></label>
+                <label>Automated testing<select name="automated_testing_allowed"><option value="false">Not allowed</option><option value="true">Allowed</option></select></label>
+                <label>Account creation<select name="account_creation_allowed"><option value="false">Not allowed</option><option value="true">Allowed</option></select></label>
+                <label>Forbidden actions<input name="forbidden_actions" placeholder="credential_stuffing, payment_changes"></label>
+                <label class="setup-wide">Data-handling restrictions<textarea name="data_handling_restrictions" maxlength="2048" rows="3"></textarea></label>
+              </div>
+            </section>
+            <section data-setup-step="3" hidden><h3>Autonomy policy</h3><p class="context-line">These limits apply in addition to program rules and request permits.</p><div id="targetAutonomyFields" class="setup-grid"></div><h4>Action-specific permissions</h4><div id="targetActionFields" class="setup-grid"></div></section>
+            <section data-setup-step="4" hidden><h3>Rate policy</h3><div class="setup-grid">
+              <label>Requests per second<input name="requests_per_second" type="number" required min="0.01" max="100" step="0.01" value="1"></label>
+              <label>Requests per minute<input name="requests_per_minute" type="number" required min="1" max="6000" step="1" value="30"></label>
+              <label>Maximum concurrency<input name="max_concurrency" type="number" required min="1" max="100" step="1" value="1"></label>
+              <label>Burst<input name="burst" type="number" required min="1" max="1000" step="1" value="1"></label>
+            </div></section>
+            <section data-setup-step="5" hidden><h3>Review and create</h3><dl id="targetSetupReview" class="details"></dl>
+              <label class="setup-confirm"><input name="confirmed" type="checkbox" required> I confirm this scope and policy come from the authorization record.</label>
+              <p class="context-line">Creating this TargetPackage authorizes HackBot only according to the scope and policy you entered. Recon cannot extend this scope.</p>
+            </section>
+            <div class="setup-actions"><button id="targetSetupBack" class="quiet" type="button">Back</button><button id="targetSetupNext" class="quiet" type="button">Continue</button><button id="targetSetupCreate" class="quiet" type="submit" hidden>Create TargetPackage</button></div>
+          </form>
+        </div>
+        <div id="targetDetail" hidden>
+          <div class="detail-head"><button id="backTargets" class="icon-button" title="Back to targets" aria-label="Back to targets">&#8592;</button><div><h2 id="detailName"></h2><p id="detailDomain" class="muted"></p></div><span id="detailStatus" class="badge"></span></div>
+          <div class="tabs" role="tablist" aria-label="Target details">
+            <button data-target-tab="overview" role="tab">Overview</button>
+            {% if hunt_ui_enabled %}<button data-target-tab="hunt" role="tab">Hunt</button>{% endif %}
+            <button data-target-tab="bootstrap" role="tab">Bootstrap</button>
+            <button data-target-tab="scope" role="tab">Scope</button>
+            <button data-target-tab="accounts" role="tab">Accounts</button>
+            <button data-target-tab="sessions" role="tab">Sessions</button>
+            <button data-target-tab="traffic" role="tab">Traffic</button>
+            <button data-target-tab="objects" role="tab">Objects</button>
+            <button data-target-tab="authorization" role="tab">Authorization</button>
+            <button data-target-tab="behaviour" role="tab">Behaviour</button>
+            <button data-target-tab="profile" role="tab">Profile</button>
+            <button data-target-tab="hypotheses" role="tab">Hypotheses</button>
+            <button data-target-tab="research" role="tab">Research</button>
+            <button data-target-tab="policy" role="tab">Policy</button>
+          </div>
+          <div id="targetTabContent"></div>
+        </div>
+        <div id="targetList">
+          <div class="section-head"><h2>Authorized target packages</h2><div class="actions"><button id="addTarget" class="quiet" type="button">+ Add Target</button><button id="refreshTargets" class="icon-button" title="Refresh targets" aria-label="Refresh targets">&#8635;</button></div></div>
+          <div class="table-wrap"><table><thead><tr><th>Target</th><th>Root domain</th><th>Status</th><th>Scope</th><th>Accounts</th><th>Sessions</th><th>Traffic</th><th></th></tr></thead><tbody id="targetRows"></tbody></table></div>
+          <button id="moreTargets" class="quiet" hidden>Load more</button>
+          <div id="deletedTargetHistory" hidden><div class="section-head"><h3>Deleted target history</h3></div><div id="deletedTargetRows" class="activity"></div></div>
+        </div>
+      </section>
+
+      <section id="behaviourView" class="view" aria-label="Behaviour learning" hidden>
+        <div class="section-head"><h2>Normal behaviour</h2><button id="refreshBehaviourView" class="icon-button" title="Refresh behaviour" aria-label="Refresh behaviour">&#8635;</button></div>
+        <div class="actions"><button id="startBehaviour" class="quiet" type="button">Start learning</button><button id="refreshBehaviour" class="quiet" type="button">Refresh missing coverage</button></div>
+        <p id="behaviourStatus" class="context-line"></p>
+        <div id="behaviourCoverage" class="metrics"></div>
+        <div class="section-head"><h3>Knowledge gaps</h3></div><ul id="behaviourGaps" class="plain-list"></ul>
+        <div class="section-head"><h3>Identities and tenants</h3></div><div id="behaviourActors" class="scope-list"></div>
+        <div class="section-head"><h3>Features and operations</h3></div><div id="behaviourFeatures" class="scope-list"></div>
+        <div class="table-wrap"><table><thead><tr><th>Action</th><th>Feature</th><th>Protocol</th><th>Observed result</th><th>Traffic</th></tr></thead><tbody id="behaviourOperations"></tbody></table></div>
+        <div class="section-head"><h3>Workflows</h3></div><div class="table-wrap"><table><thead><tr><th>Feature</th><th>Action</th><th>Identity</th><th>Tenant</th><th>Objects</th><th>Result</th><th>Evidence</th></tr></thead><tbody id="behaviourWorkflows"></tbody></table></div>
+        <div class="section-head"><h3>Role and feature</h3></div><div class="table-wrap"><table><thead><tr><th>Role</th><th>Feature</th><th>Observed</th><th>Explicit denials</th></tr></thead><tbody id="behaviourRoleFeatures"></tbody></table></div>
+        <div class="section-head"><h3>Role and operation</h3></div><div class="table-wrap"><table><thead><tr><th>Role</th><th>Operation</th><th>Observed</th><th>Explicit denials</th></tr></thead><tbody id="behaviourRoleOperations"></tbody></table></div>
+        <div class="section-head"><h3>Owned objects</h3><a id="behaviourObjectsLink" class="text-action" href="/hackbot/objects">Open Objects</a></div><div class="table-wrap"><table><thead><tr><th>Object</th><th>Type</th><th>Owner</th><th>Tenant</th><th>Parent</th><th>Evidence</th></tr></thead><tbody id="behaviourObjects"></tbody></table></div>
+        <div class="section-head"><h3>Learning runs</h3></div><div class="table-wrap"><table><thead><tr><th>Created</th><th>Status</th><th>Traffic</th><th>New observations</th><th>Stop reason</th><th>Action</th></tr></thead><tbody id="behaviourRuns"></tbody></table></div>
+      </section>
+
+      <section id="authorizationView" class="view" aria-label="Authorization" hidden>
+        <div class="section-head"><h2>Authorization hunts</h2><button id="refreshAuthorization" class="icon-button" title="Refresh authorization" aria-label="Refresh authorization">&#8635;</button></div>
+        <p id="authorizationMetrics" class="context-line"></p>
+        <form id="authorizationHuntForm" class="filters">
+          <label>Mode<select name="mode"><option value="PLAN_ONLY">Plan only</option><option value="MANUAL">Candidates only</option><option value="BOUNDED_AUTONOMOUS">Bounded autonomous</option></select></label>
+          <label>Candidates<input name="candidate_limit" type="number" min="1" max="50" value="12"></label>
+          <label>Request budget<input name="request_budget" type="number" min="0" max="50" value="20"></label>
+          <button type="submit" class="quiet">Start Authorization Hunt</button>
+        </form>
+        <div class="table-wrap"><table><thead><tr><th>Started</th><th>Mode</th><th>Status</th><th>Candidate cap</th><th>Request budget</th><th>Action</th></tr></thead><tbody id="authorizationHuntRows"></tbody></table></div>
+        <div class="section-head"><h2>Identity and ownership</h2></div>
+        <div class="table-wrap"><table><thead><tr><th>Identity</th><th>Principal</th><th>Observed tenant</th><th>Observed role</th><th>Verified session</th></tr></thead><tbody id="authorizationIdentityRows"></tbody></table></div>
+        <div class="table-wrap"><table><thead><tr><th>Object</th><th>Type</th><th>Owner</th><th>Tenant</th><th>Ownership evidence</th></tr></thead><tbody id="authorizationObjectRows"></tbody></table></div>
+        <div class="section-head"><h2>Top candidates</h2></div>
+        <div class="table-wrap"><table><thead><tr><th>Score</th><th>Boundary</th><th>Object</th><th>Actor</th><th>Why</th><th>Status</th><th>Plan / run</th><th>Action</th></tr></thead><tbody id="authorizationCandidateRows"></tbody></table></div>
+        <div class="section-head"><h2>Observed matrix</h2></div>
+        <div class="table-wrap"><table><thead><tr><th>Time</th><th>Identity</th><th>Operation</th><th>Object</th><th>Tenant</th><th>Result</th><th>Traffic / evidence</th></tr></thead><tbody id="authorizationMatrixRows"></tbody></table></div>
+      </section>
+
+      <section id="apiView" class="view" aria-label="API and GraphQL" hidden>
+        <div class="section-head"><h2>API / GraphQL</h2><div class="actions"><button id="analyzeApi" class="quiet" type="button">Analyze observed data</button><button id="refreshApi" class="icon-button" type="button" title="Refresh API review" aria-label="Refresh API review">&#8635;</button></div></div>
+        <p id="apiCoverageNote" class="context-line"></p>
+        <div id="apiMetrics" class="metrics"></div>
+        <div class="section-head"><h3>Operations</h3><label>State<select id="apiOperationState"><option value="CURRENT">Current</option><option value="STALE">Stale</option></select></label></div>
+        <div class="table-wrap"><table><thead><tr><th>Operation</th><th>Type</th><th>Endpoint</th><th>Feature</th><th>Roles</th><th>Tenants</th><th>Traffic</th><th>State</th><th></th></tr></thead><tbody id="apiOperationRows"></tbody></table></div>
+        <button id="moreApiOperations" class="quiet" type="button" hidden>Load more operations</button>
+        <div class="section-head"><h3>Authorization candidates</h3></div>
+        <div class="table-wrap"><table><thead><tr><th>Score</th><th>Category</th><th>Operation</th><th>Boundary</th><th>Object / field</th><th>Status</th><th>Plan / run</th><th>Action</th></tr></thead><tbody id="apiCandidateRows"></tbody></table></div>
+        <button id="moreApiCandidates" class="quiet" type="button" hidden>Load more candidates</button>
+      </section>
+
+      <section id="researchView" class="view" aria-label="Research" hidden>
+        <div id="researchMetrics" class="metrics"></div>
+        <div class="section-head"><h2>Knowledge gaps</h2><div class="actions"><label><input id="researchExternal" type="checkbox"> Public sources</label><button id="refreshResearch" class="icon-button" type="button" title="Refresh research" aria-label="Refresh research">&#8635;</button></div></div>
+        <div class="table-wrap"><table><thead><tr><th>Priority</th><th>Topic</th><th>Gap</th><th>Specialist</th><th>Action</th></tr></thead><tbody id="researchGapRows"></tbody></table></div>
+        <div class="section-head"><h2>Research briefs</h2></div>
+        <div class="table-wrap"><table><thead><tr><th>Created</th><th>Topic</th><th>Status</th><th>Freshness</th><th>Quality</th><th>Skills</th><th>Action</th></tr></thead><tbody id="researchRequestRows"></tbody></table></div>
+        <div id="researchDetail" hidden>
+          <div class="section-head"><h3>Brief detail</h3><button id="closeResearchDetail" class="icon-button" type="button" title="Close brief" aria-label="Close brief">&#10005;</button></div>
+          <dl id="researchBriefFacts" class="details"></dl>
+          <div class="section-head"><h3>Sources</h3></div><div id="researchSourceList"></div>
+          <div id="researchBriefActions" class="actions"></div>
+        </div>
+      </section>
+
+      <section id="accountsView" class="view" aria-label="Accounts" hidden>
+        <div class="section-head"><h2>Owned identities</h2><button id="importAccounts" class="quiet">Register package accounts</button></div>
+        <p class="context-line">Account metadata comes from the target package. Auth status is separate from registry status.</p>
+        <div class="table-wrap"><table><thead><tr><th>Alias</th><th>Principal</th><th>Tenant / role</th><th>Registry</th><th>Auth</th><th>Browser</th><th>Action</th></tr></thead><tbody id="accountRows"></tbody></table></div>
+        <button id="moreAccounts" class="quiet" hidden>Load more</button>
+      </section>
+
+      <section id="sessionsView" class="view" aria-label="Sessions" hidden>
+        <div class="section-head"><h2>Browser sessions</h2><div class="actions"><select id="sessionIdentity" aria-label="Identity for new session"><option value="">Select owned identity</option></select><button id="createSession" class="quiet">Create session</button></div></div>
+        <div class="table-wrap"><table><thead><tr><th>Session</th><th>Identity</th><th>Browser</th><th>Verification</th><th>Created</th><th>Last verified</th><th>Proxy / Burp</th><th>Login</th><th>Action</th></tr></thead><tbody id="sessionRows"></tbody></table></div>
+        <button id="moreSessions" class="quiet" hidden>Load more</button>
+      </section>
+
+      <section id="trafficView" class="view" aria-label="Traffic" hidden>
+        <div class="section-head"><h2>Captured exchanges</h2><span id="trafficSummary" class="muted"></span></div>
+        <form id="trafficFilters" class="filters">
+          <label>Identity<select name="identity" id="trafficIdentity"><option value="">All</option></select></label>
+          <label>Session<select name="session" id="trafficSession"><option value="">All</option></select></label>
+          <label>Method<select name="method"><option value="">All</option><option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>HEAD</option><option>OPTIONS</option></select></label>
+          <label>Status<input name="status" type="number" min="100" max="599" placeholder="Any"></label>
+          <label>Source<select name="source"><option value="">All</option><option>BURP</option><option>BROWSER</option><option>HACKBOT</option><option>IMPORT</option><option>FIXTURE</option></select></label>
+          <label>Scope<select name="scope"><option value="">All</option><option>IN_SCOPE</option><option>OUT_OF_SCOPE</option><option>UNKNOWN</option></select></label>
+          <button type="submit" class="quiet">Apply</button>
+        </form>
+        <div class="table-wrap"><table><thead><tr><th>Time</th><th>Identity / tenant</th><th>Method</th><th>Host / path</th><th>Status</th><th>Source</th><th>Fingerprint</th><th>Scope</th><th></th></tr></thead><tbody id="trafficRows"></tbody></table></div>
+        <button id="moreTraffic" class="quiet" hidden>Load more</button>
+      </section>
+
+      <section id="objectsView" class="view" aria-label="Disposable objects" hidden>
+        <div id="objectList">
+          <div class="section-head"><h2>Disposable objects</h2><div class="actions"><span id="objectSummary" class="muted"></span><button id="refreshObjects" class="icon-button" title="Refresh objects" aria-label="Refresh objects">&#8635;</button></div></div>
+          <form id="objectFilters" class="filters">
+            <label>Type<input name="type" maxlength="64" placeholder="All"></label>
+            <label>Tenant<input name="tenant" maxlength="48" placeholder="All"></label>
+            <label>Identity<input name="identity" maxlength="48" placeholder="All"></label>
+            <label>State<select name="status"><option value="">All</option><option>PLANNED</option><option>CREATING</option><option>CREATED</option><option>VERIFYING</option><option>READY</option><option>IN_USE</option><option>CLEANUP_PENDING</option><option>CLEANING</option><option>CLEANED</option><option>ORPHANED</option><option>FAILED</option><option>UNKNOWN</option></select></label>
+            <label>Cleanup<select name="cleanup"><option value="">All</option><option value="pending">Pending</option></select></label>
+            <button type="submit" class="quiet">Apply</button>
+          </form>
+          <div class="table-wrap"><table><thead><tr><th>Object</th><th>Target</th><th>Type</th><th>Tenant</th><th>Creator</th><th>State</th><th>Cleanup</th><th>Created</th><th></th></tr></thead><tbody id="objectRows"></tbody></table></div>
+          <button id="moreObjects" class="quiet" hidden>Load more</button>
+          <div class="section-head"><h2>Create test object</h2></div>
+          <form id="createObjectForm" class="filters">
+            <label>Recipe<select name="recipe_id" id="objectRecipe" required><option value="">Select recipe</option></select></label>
+            <label>Identity<select name="identity_id" id="objectIdentity" required><option value="">Select identity</option></select></label>
+            <label>Tenant<select name="tenant_id" id="objectTenant" required><option value="">Select tenant</option></select></label>
+            <label>Session<select name="session_id" id="objectSession" required><option value="">Select session</option></select></label>
+            <label>Parent object ID<input name="parent_id" maxlength="40" placeholder="Only when required"></label>
+            <button type="submit" class="quiet">Create</button>
+          </form>
+        </div>
+        <div id="objectDetail" hidden>
+          <div class="section-head"><div class="actions"><button id="backObjects" class="icon-button" title="Back to objects" aria-label="Back to objects">&#8592;</button><h2>Object detail</h2></div><div id="objectActions" class="actions"></div></div>
+          <dl id="objectDetails" class="details"></dl>
+          <div class="section-head"><h2>Mutation history</h2></div>
+          <div id="objectMutationHistory" class="plan-lines"></div>
+          <div class="section-head"><h2>Lifecycle events</h2></div>
+          <div class="table-wrap"><table><thead><tr><th>Time</th><th>Event</th><th>Reason</th><th>Source</th><th>Traffic</th><th>Evidence</th></tr></thead><tbody id="objectEvents"></tbody></table></div>
+        </div>
+      </section>
+
+      <section id="scopeView" class="view" aria-label="Scope" hidden>
+        <div class="section-head"><h2>Authorized target scope</h2><span class="badge good">TARGET PACKAGE</span></div>
+        <div id="scopeContent"></div>
+        <div class="section-head"><h2>Policy check</h2></div>
+        <form id="policyCheckForm" class="filters">
+          <label>URL<input name="url" type="url" required maxlength="4096" placeholder="https://api.example.test/path"></label>
+          <label>Action<select name="category"><option>SAFE_READ</option><option>HTTP_REQUEST</option><option>HTTP_REPLAY</option><option>BROWSER_NAVIGATION</option><option>AUTHORIZATION_TEST</option><option>OBJECT_CREATE</option><option>OBJECT_UPDATE</option><option>OBJECT_DELETE</option><option>FILE_UPLOAD</option><option>MESSAGE_SEND</option><option>PERMISSION_CHANGE</option><option>EXTERNAL_SIDE_EFFECT</option><option>FINANCIAL</option><option>DESTRUCTIVE</option></select></label>
+          <label>Method<select name="method"><option>GET</option><option>HEAD</option><option>OPTIONS</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option></select></label>
+          <label>Actor<select name="actor"><option>ANONYMOUS</option><option>AUTHENTICATED</option></select></label>
+          <label>Identity ID<input name="identity_id" maxlength="41" placeholder="For authenticated actions"></label>
+          <label>Session ID<input name="session_id" maxlength="41" placeholder="Verified session"></label>
+          <label>Operation<input name="operation" maxlength="128" placeholder="e.g. invite"></label>
+          <label>Object type<input name="object_type" maxlength="128" placeholder="e.g. dashboard"></label>
+          <label class="policy-check">Disposable intent<input name="disposable_intent" type="checkbox"></label>
+          <button type="submit" class="quiet">Check policy</button>
+        </form>
+        <dl id="policyCheckResult" class="details"></dl>
+        <div class="section-head"><h2>Recon inventory</h2><span class="badge">NOT AUTHORIZATION</span></div>
+        <p class="context-line">Recon hosts, endpoints and JavaScript are technical observations. They do not expand the program scope above.</p>
+      </section>
+
+      <section id="approvalsView" class="view" aria-label="Approvals" hidden>
+        <div class="section-head"><h2>Approval requests</h2><button id="refreshApprovals" class="icon-button" title="Refresh approvals" aria-label="Refresh approvals">&#8635;</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Target</th><th>Hypothesis / action</th><th>Run</th><th>Operation</th><th>Risk</th><th>Reason</th><th>Identity</th><th>Object</th><th>Created</th><th>Status</th><th>Decision</th></tr></thead><tbody id="approvalRows"></tbody></table></div>
+        <button id="moreApprovals" class="quiet" hidden>Load more</button>
+      </section>
+
+      <section id="hypothesesView" class="view" aria-label="Hypotheses" hidden>
+        <div class="section-head"><h2>Passive security hypotheses</h2><div class="actions"><button id="profileTarget" class="quiet">Profile Target</button><button id="addHypothesis" class="quiet">Add hypothesis</button></div></div>
+        <p class="context-line">Hypotheses are unverified research leads, not findings. Profiling reads only bounded local and recon metadata.</p>
+        <form id="hypothesisFilters" class="filters">
+          <label>Status<select name="status"><option value="">All</option><option>NEW</option><option>ENRICHING</option><option>READY</option><option>NEEDS_RESEARCH</option><option>NEEDS_MANUAL_REVIEW</option><option>READY_FOR_EXPERIMENT</option><option>REJECTED</option><option>BLOCKED</option></select></label>
+          <label>Category<select name="category"><option value="">All</option><option>CROSS_TENANT</option><option>ROLE_AUTHORIZATION</option><option>GRAPHQL_AUTHORIZATION</option><option>POSTMESSAGE</option><option>DOM_XSS</option><option>EXPOSURE</option><option>INTERNAL_SURFACE</option><option>SSRF</option><option>OPEN_REDIRECT</option><option>UNKNOWN</option></select></label>
+          <label><input type="checkbox" name="archived" value="1"> Show archived</label>
+          <button type="submit" class="quiet">Apply</button>
+        </form>
+        <div class="table-wrap"><table><thead><tr><th>Priority</th><th>Category</th><th>Statement</th><th>Status</th><th>Evidence</th><th>Prerequisites</th><th>Created</th><th></th></tr></thead><tbody id="hypothesisRows"></tbody></table></div>
+        <button id="moreHypotheses" class="quiet" hidden>Load more</button>
+      </section>
+
+      <section id="skillsView" class="view" aria-label="Skills" hidden>
+        <div class="section-head"><h2>Security playbooks</h2><span class="badge">PLAN ONLY</span></div>
+        <p class="context-line">Skills explain methodology; they do not authorize or execute requests.</p>
+        <div class="table-wrap"><table><thead><tr><th>Skill</th><th>Category</th><th>Source</th><th>Version</th><th>Triggers</th><th>Risk</th><th>Requests</th><th>Plans</th><th></th></tr></thead><tbody id="skillRows"></tbody></table></div>
+      </section>
+
+      <section id="plansView" class="view" aria-label="Plans" hidden>
+        <div class="section-head"><h2>Investigation plan</h2><button id="startPlan" class="quiet" type="button" hidden>Start Investigation</button></div>
+        <p class="context-line">Plan policy results are simulations. Runs are unvalidated experiments.</p>
+        <dl id="planSummary" class="details"></dl>
+        <div class="section-head"><h2>Steps and controls</h2></div>
+        <div id="planSteps" class="plan-lines"></div>
+        <div class="section-head"><h2>Proposed actions</h2></div>
+        <div id="planActions" class="plan-lines"></div>
+        <div class="section-head"><h2>Plan runs</h2></div>
+        <div class="table-wrap"><table><thead><tr><th>Created</th><th>Run</th><th>Status</th><th>Step</th><th>Requests</th><th>Approval</th><th></th></tr></thead><tbody id="planRunRows"></tbody></table></div>
+        <button id="morePlanRuns" class="quiet" hidden>Load more</button>
+      </section>
+
+      <section id="runsView" class="view" aria-label="Runs" hidden>
+        <div id="runList">
+          <div class="section-head"><h2>Investigation runs</h2><div class="actions"><label><input id="runShowArchived" type="checkbox"> Show archived</label><button id="refreshRuns" class="icon-button" title="Refresh runs" aria-label="Refresh runs">&#8635;</button></div></div>
+          <div class="table-wrap"><table><thead><tr><th>Created</th><th>Run</th><th>Hypothesis</th><th>Skill</th><th>Status</th><th>Requests</th><th>Approval</th><th></th></tr></thead><tbody id="runRows"></tbody></table></div>
+          <button id="moreRuns" class="quiet" hidden>Load more</button>
+        </div>
+        <div id="runDetail" hidden>
+          <div class="section-head"><div class="actions"><button id="backRuns" class="icon-button" title="Back to runs" aria-label="Back to runs">&#8592;</button><h2>Run detail</h2></div><div id="runControls" class="actions"></div></div>
+          <p class="context-line">Completed steps are observations, not confirmed vulnerabilities.</p>
+          <dl id="runSummary" class="details"></dl>
+          <div id="runMutationSection" hidden>
+            <div class="section-head"><h2>Mutation proof and cleanup</h2></div>
+            <dl id="runMutationSummary" class="details"></dl>
+            <div id="runMutationHistory" class="plan-lines"></div>
+          </div>
+          <form id="manualReviewForm" class="filters" hidden>
+            <label>Evidence ID<input name="evidence_id" maxlength="48" placeholder="EV-..."></label>
+            <label>Exchange ID<input name="exchange_id" maxlength="48" placeholder="EXCHANGE-..."></label>
+            <button type="submit" class="quiet">Link review</button>
+          </form>
+          <div class="section-head"><h2>Steps</h2></div>
+          <div class="table-wrap"><table><thead><tr><th>#</th><th>Type / role</th><th>Status</th><th>Control</th><th>Policy / approval</th><th>Permit / execution</th><th>Traffic / evidence</th><th>Result</th></tr></thead><tbody id="runStepRows"></tbody></table></div>
+          <div class="section-head"><h2>Timeline</h2></div>
+          <div id="runTimeline" class="activity"></div>
+        </div>
+      </section>
+
+      <section id="validationsView" class="view" aria-label="Validations" hidden>
+        <div id="validationList">
+          <div class="section-head"><h2>Evidence decisions</h2><button id="refreshValidations" class="icon-button" title="Refresh validations" aria-label="Refresh validations">&#8635;</button></div>
+          <form id="validationFilters" class="filters"><label>Status<select name="status"><option value="">All</option><option>CONFIRMED</option><option>REJECTED</option><option>NEEDS_MANUAL_REVIEW</option><option>INSUFFICIENT_EVIDENCE</option><option>INVALID_TEST</option><option>DUPLICATE_CANDIDATE</option></select></label><button class="quiet" type="submit">Apply</button></form>
+          <div class="table-wrap"><table><thead><tr><th>Created</th><th>Result</th><th>Skill / validator</th><th>Run</th><th>Controls</th><th>Evidence</th><th></th></tr></thead><tbody id="validationRows"></tbody></table></div>
+          <button id="moreValidations" class="quiet" hidden>Load more</button>
+        </div>
+        <div id="validationDetail" hidden>
+          <div class="section-head"><div class="actions"><button id="backValidations" class="icon-button" title="Back to validations" aria-label="Back to validations">&#8592;</button><h2>Validation detail</h2></div><span class="stage tested">TESTED</span></div>
+          <dl id="validationSummary" class="details"></dl>
+          <div class="section-head"><h2>Criteria and controls</h2></div><div id="validationCriteria" class="plan-lines"></div>
+          <div class="section-head"><h2>Checks</h2></div><div class="table-wrap"><table><thead><tr><th>Criterion</th><th>Result</th><th>Evidence IDs</th></tr></thead><tbody id="validationCheckRows"></tbody></table></div>
+        </div>
+      </section>
+
+      <section id="findingsView" class="view" aria-label="Findings" hidden>
+        <div id="findingList">
+          <div class="section-head"><h2>Confirmed findings</h2><button id="refreshFindings" class="icon-button" title="Refresh findings" aria-label="Refresh findings">&#8635;</button></div>
+          <form id="findingFilters" class="filters"><label>Status<select name="status"><option value="">All</option><option>CONFIRMED</option><option>READY_FOR_REPORT</option><option>SUBMITTED</option><option>TRIAGED</option><option>DUPLICATE</option><option>INFORMATIVE</option><option>RESOLVED</option><option>REWARDED</option></select></label><button class="quiet" type="submit">Apply</button></form>
+          <div class="table-wrap"><table><thead><tr><th>Created</th><th>Title</th><th>Category</th><th>Status</th><th>Evidence</th><th>Report</th><th>Notification</th><th></th></tr></thead><tbody id="findingRows"></tbody></table></div>
+          <button id="moreFindings" class="quiet" hidden>Load more</button>
+        </div>
+        <div id="findingDetail" hidden>
+          <div class="section-head"><div class="actions"><button id="backFindings" class="icon-button" title="Back to findings" aria-label="Back to findings">&#8592;</button><h2>Finding detail</h2></div><span class="stage confirmed">CONFIRMED FINDING</span></div>
+          <dl id="findingSummary" class="details"></dl>
+          <div class="section-head"><h3>Report and workflow</h3><div id="findingActions" class="actions"></div></div>
+          <form id="findingWorkflowForm" class="filters">
+            <label>Operator alias<input name="actor_alias" maxlength="64" autocomplete="off" placeholder="researcher"></label>
+            <label>Platform<input name="platform" maxlength="40" autocomplete="off" placeholder="HackerOne"></label>
+            <label>Program<input name="program" maxlength="100" autocomplete="off"></label>
+            <label>Report ID<input name="external_report_id" maxlength="100" autocomplete="off"></label>
+            <label>Duplicate reference<input name="external_duplicate_ref" maxlength="100" autocomplete="off"></label>
+            <label>Reward amount<input name="reward_amount" type="number" min="0" max="10000000" step="0.01"></label>
+            <label>Currency<input name="reward_currency" maxlength="3" autocomplete="off" placeholder="USD"></label>
+            <label>Triage outcome<input name="triage_status" maxlength="80" autocomplete="off"></label>
+            <label>Note<input name="note" maxlength="1000" autocomplete="off"></label>
+          </form>
+          <div id="findingWorkflowHistory" class="activity"></div>
+          <div class="section-head"><h2>Evidence and affected locations</h2></div><div id="findingEvidence" class="plan-lines"></div>
+        </div>
+      </section>
+
+      <section id="reportsView" class="view" aria-label="Reports" hidden>
+        <div id="reportList">
+          <div class="section-head"><h2>Report drafts</h2><button id="refreshReports" class="icon-button" type="button" title="Refresh reports" aria-label="Refresh reports">&#8635;</button></div>
+          <div class="table-wrap"><table><thead><tr><th>Generated</th><th>Finding</th><th>Target</th><th>Category</th><th>Version</th><th>Workflow</th><th>Readiness</th><th></th></tr></thead><tbody id="reportRows"></tbody></table></div>
+          <button id="moreReports" class="quiet" type="button" hidden>Load more</button>
+        </div>
+        <div id="reportDetail" hidden>
+          <div class="section-head"><div class="actions"><button id="backReports" class="icon-button" type="button" title="Back to reports" aria-label="Back to reports">&#8592;</button><h2>Report detail</h2></div><div id="reportActions" class="actions"></div></div>
+          <dl id="reportSummary" class="details"></dl>
+          <pre id="reportMarkdown" class="report-markdown"></pre>
+          <div class="section-head"><h3>Researcher edit</h3></div>
+          <form id="reportEditForm" class="report-edit">
+            <label for="reportEditText">Markdown</label><textarea id="reportEditText" rows="15" maxlength="65536" spellcheck="false"></textarea>
+            <label class="review-check"><input id="reportReviewed" type="checkbox"> I have reviewed this version and its evidence</label>
+            <button class="quiet" type="submit">Save new version</button>
+          </form>
+        </div>
+        <div class="section-head"><h3>Notifications</h3><button id="testNotification" class="quiet" type="button">Send TEST notification</button></div>
+        <div id="notificationStatus" class="context-line"></div>
+        <div id="notificationHistory" class="activity"></div>
+      </section>
+
+      <section id="burpView" class="view" aria-label="Burp" hidden>
+        <div class="section-head"><h2>Capture provider</h2></div>
+        <div class="burp-status"><strong id="burpState">Checking</strong><span id="burpDetail" class="muted"></span></div>
+        <dl id="burpMetrics" class="details"></dl>
+      </section>
+    </main>
+  </div>
+  <dialog id="trafficDialog" aria-labelledby="trafficDialogTitle">
+    <div class="dialog-head"><h2 id="trafficDialogTitle">Traffic detail</h2><button id="closeTraffic" class="icon-button" title="Close detail" aria-label="Close detail">&#10005;</button></div>
+    <dl id="trafficDetail" class="details"></dl>
+  </dialog>
+  <dialog id="authorizationEvidenceDialog" aria-labelledby="authorizationEvidenceTitle">
+    <div class="dialog-head"><h2 id="authorizationEvidenceTitle">Evidence reference</h2><button id="closeAuthorizationEvidence" class="icon-button" title="Close detail" aria-label="Close detail">&#10005;</button></div>
+    <dl id="authorizationEvidenceDetail" class="details"></dl>
+  </dialog>
+  <dialog id="apiOperationDialog" aria-labelledby="apiOperationTitle">
+    <div class="dialog-head"><h2 id="apiOperationTitle">API operation</h2><button id="closeApiOperation" class="icon-button" type="button" title="Close operation" aria-label="Close operation">&#10005;</button></div>
+    <dl id="apiOperationDetail" class="details"></dl>
+    <h3>Fields and access context</h3><div id="apiOperationFields" class="plan-lines"></div>
+    <h3>Candidate hypotheses</h3><div id="apiOperationCandidates" class="plan-lines"></div>
+    <button id="moreApiOperationCandidates" class="quiet" type="button" hidden>Load more hypotheses</button>
+  </dialog>
+  <dialog id="mutationApprovalDialog" aria-labelledby="mutationApprovalTitle">
+    <div class="dialog-head"><h2 id="mutationApprovalTitle">Typed mutation review</h2><button id="closeMutationApproval" class="icon-button" title="Close review" aria-label="Close review">&#10005;</button></div>
+    <dl id="mutationApprovalDetail" class="details"></dl>
+  </dialog>
+  <dialog id="hypothesisDialog" aria-labelledby="hypothesisDialogTitle">
+    <div class="dialog-head"><h2 id="hypothesisDialogTitle">Hypothesis detail</h2><button id="closeHypothesis" class="icon-button" title="Close detail" aria-label="Close detail">&#10005;</button></div>
+    <dl id="hypothesisDetail" class="details"></dl>
+    <div class="section-head"><h3>Recommended skills</h3></div>
+    <div id="recommendedSkills" class="plan-lines"></div>
+    <div class="section-head"><h3>Manual selection</h3></div>
+    <div class="actions"><select id="manualSkillSelect" aria-label="Select skill"><option value="">Select skill</option></select><button id="manualPlan" class="quiet" type="button">Generate plan</button></div>
+  </dialog>
+  <dialog id="skillDialog" aria-labelledby="skillDialogTitle">
+    <div class="dialog-head"><h2 id="skillDialogTitle">Skill detail</h2><button id="closeSkill" class="icon-button" title="Close detail" aria-label="Close detail">&#10005;</button></div>
+    <dl id="skillDetail" class="details"></dl>
+    <h3>Workflow</h3><div id="skillWorkflow" class="plan-lines"></div>
+  </dialog>
+  <dialog id="manualHypothesisDialog" aria-labelledby="manualHypothesisTitle">
+    <div class="dialog-head"><h2 id="manualHypothesisTitle">Add hypothesis</h2><button id="closeManualHypothesis" class="icon-button" title="Close" aria-label="Close">&#10005;</button></div>
+    <form id="manualHypothesisForm" class="manual-form">
+      <label>Category<select name="category" required><option value="AUTHORIZATION">Authorization</option><option value="BOLA_IDOR">BOLA / IDOR</option><option value="CLIENT_SIDE">Client side</option><option value="EXPOSURE">Exposure</option><option value="BUSINESS_LOGIC">Business logic</option><option value="UNKNOWN">Other</option></select></label>
+      <label>Hypothesis<input name="statement" maxlength="500" required></label>
+      <label>Future experiment<input name="future_experiment" maxlength="500" required></label>
+      <button class="quiet" type="submit">Add hypothesis</button>
+    </form>
+  </dialog>
+  <script id="hackbotConfig" type="application/json">{{ {"csrf": csrf_token, "section": section, "huntEnabled": hunt_ui_enabled}|tojson }}</script>
+  <script src="{{ url_for('static', filename='hackbot_panel.js', v='52') }}" defer></script>
+</body>
+</html>

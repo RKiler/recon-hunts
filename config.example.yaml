@@ -1,0 +1,537 @@
+cloud_inventory:
+  enabled: true
+  directory: /app/cloud_inventory
+  source: cloud_inventory
+
+shodan:
+  enabled: false
+  api_base_url: https://api.shodan.io
+  domain_lookup_enabled: true
+  domain_lookup_interval_hours: 168
+  host_lookup_interval_hours: 72
+  max_ip_lookups_per_domain: 100
+  include_historical_dns: true
+  skip_cdn_ips: true
+  verify_new_ports: true
+  request_interval_seconds: 1.05
+  request_timeout_seconds: 30
+  worker_idle_seconds: 10
+  lease_seconds: 120
+  max_attempts: 3
+
+search_intelligence:
+  enabled: true
+  provider: auto
+  interval_hours: 168
+  max_queries_per_domain: 12
+  max_results_per_query: 20
+  max_url_probes_per_run: 50
+  url_probe_concurrency: 3
+  url_probe_timeout_seconds: 10
+  request_interval_seconds: 1.2
+  request_timeout_seconds: 30
+  worker_idle_seconds: 60
+  seed_interval_seconds: 3600
+  lease_seconds: 900
+  max_attempts: 3
+
+scan:
+  max_concurrent_domains: 5
+  max_concurrent_live_hosts: 5
+  http_timeout_seconds: 15
+  httpx_threads: 50
+  httpx_rate_limit: 100
+  httpx_batch_size: 200
+  httpx_batch_timeout_seconds: 300
+  httpx_request_timeout_seconds: 10
+  httpx_retries: 1
+  httpx_fallback_min_batch_size: 25
+  httpx_max_split_depth: 4
+  httpx_include_known_subdomains: true
+  httpx_max_known_subdomains_per_scan: 20000
+  incomplete_probe_retry_minutes: 30
+  dnsx_batch_size: 500
+  dnsx_batch_timeout_seconds: 180
+  dnsx_fallback_min_batch_size: 50
+  dnsx_max_split_depth: 4
+  tool_timeout_seconds: 900
+  amass_timeout_minutes: 15
+  scheduler_poll_seconds: 5
+  idle_sleep_seconds: 300
+  metrics_port: 9090
+
+  max_wayback_urls_per_host: 200
+  archive_provider_max_concurrency: 4
+  wayback_timeout_seconds: 45
+  enable_gau: true
+  gau_max_urls_per_host: 200
+  gau_providers: [urlscan, otx, commoncrawl]
+  gau_provider_timeout_seconds: 45
+  gau_http_timeout_seconds: 25
+  enable_katana: true
+  katana_depth: 1
+  katana_max_urls_per_host: 100
+  katana_concurrency: 2
+  katana_rate_limit: 2
+  katana_crawl_duration: 45s
+  katana_js_crawl: true
+  katana_jsonl: true
+  katana_form_extraction: true
+  enable_hakrawler: true
+  hakrawler_max_urls_per_host: 100
+  hakrawler_threads: 1
+  hakrawler_timeout_seconds: 45
+  hakrawler_max_page_size_kb: 2048
+  cookie_header_file: ""
+  cookie_header_domains: []
+  max_discovered_urls_per_host: 500
+  max_full_scan_hosts_per_domain: 50
+  scan_lane_fast_top_hosts: 5
+  scan_lane_fast_changed_only: true
+  targeted_triage_enabled: true
+  targeted_triage_max_urls: 75
+  operational_backfill_limit: 500
+  out_of_scope_patterns: []
+  host_priority_keywords: [api, admin, app, auth, login, dashboard, portal, console, dev, staging, beta, internal, secure, account, sso]
+  passive_subdomain_sources_enabled: true
+  passive_source_timeout_seconds: 25
+  passive_source_max_concurrency: 1
+  passive_source_request_delay_seconds: 1.0
+  passive_source_request_delays:
+    crtsh: 2.0
+    crtname: 1.0
+    certspotter: 1.0
+    alienvault: 1.0
+  passive_source_max_backoff_seconds: 60
+  passive_source_rate_limit_cooldown_seconds: 900
+  passive_source_error_cooldown_seconds: 300
+  passive_source_timeout_cooldown_seconds: 120
+  passive_source_timeouts:
+    crtsh: 120
+    crtname: 60
+    certspotter: 45
+    alienvault: 45
+    hackertarget: 25
+    rapiddns: 25
+  passive_source_retries:
+    crtsh: 5
+    crtname: 3
+    certspotter: 3
+    alienvault: 3
+    hackertarget: 2
+    rapiddns: 2
+  passive_sources: [crtsh, crtname, certspotter, alienvault, hackertarget, rapiddns]
+  max_passive_subdomains_per_source: 10000
+  recursive_passive_discovery_enabled: true
+  recursive_passive_sources: [crtsh, certspotter, alienvault, hackertarget, rapiddns]
+  recursive_subdomain_tools: [assetfinder, subfinder, findomain]
+  recursive_passive_max_depth: 2
+  recursive_passive_max_candidates: 50
+  recursive_passive_candidates_per_round: 25
+  recursive_passive_max_zones: 10
+  recursive_passive_max_zone_labels: 3
+  recursive_passive_dns_concurrency: 5
+  recursive_passive_dns_timeout_seconds: 8
+  recursive_passive_priority_keywords: [api, admin, app, auth, dev, staging, test, internal, corp, cloud, regional, eu, us, asia]
+  deep_scan_enabled: true
+  deep_scan_interval_hours: 72
+  permutation_discovery_enabled: true
+  max_permutation_candidates: 500
+  permutation_words: [dev, staging, stage, test, qa, beta, alpha, demo, sandbox, preview, admin, app, api, auth, login, sso, secure, portal, dashboard, console, internal, corp, vpn, cdn, static, assets, docs, support, help, status]
+  robots_sitemap_discovery_enabled: true
+  max_sitemap_urls_per_host: 200
+  max_sitemap_files_per_host: 5
+  openapi_discovery_enabled: true
+  max_openapi_paths_per_host: 300
+  graphql_verification_enabled: true
+  graphql_verification_timeout_seconds: 10
+  graphql_verification_max_response_bytes: 262144
+  graphql_max_verifications_per_js_asset: 10
+  graphql_introspection_enabled: false
+  probe_discovered_url_status: true
+  url_status_probe_concurrency: 10
+
+  js_download_timeout_seconds: 20
+  js_redirect_limit: 3
+  js_max_download_bytes: 5242880
+  max_js_assets_per_host: 50
+  js_collect_all_live_hosts: true
+  analyze_js_assets: true
+  js_recursive_discovery_enabled: true
+  js_recursive_depth: 1
+  js_source_maps_enabled: true
+  trufflehog_enabled: true
+  trufflehog_results: verified,unknown
+  trufflehog_verify: false
+  trufflehog_timeout_seconds: 90
+
+  screenshots_enabled: true
+  screenshots_on_fingerprint_change: true
+
+  directory_bruteforce_enabled: false
+  ffuf_wordlist: /app/wordlists/commons.txt
+  ffuf_wordlist_default: /app/wordlists/commons.txt
+  ffuf_wordlist_deep: /app/wordlists/orwagodfather-WordList/fuzz.txt
+  ffuf_wordlist_aggressive: /app/wordlists/SecLists/Discovery/Web-Content/raft-medium-directories.txt
+  ffuf_aggressive_enabled: false
+  ffuf_skip_completed: true
+  ffuf_threads: 10
+  ffuf_rate: 30
+  ffuf_timeout_seconds: 10
+  ffuf_batch_workers: 3
+  ffuf_batch_threads: 5
+  ffuf_batch_rate: 8
+  ffuf_batch_idle_seconds: 5
+  ffuf_batch_max_time_seconds: 1200
+  ffuf_match_status: [200, 204, 301, 302, 307, 308, 401, 403]
+  ffuf_max_hosts_per_domain: 3
+
+  nuclei_enabled: false
+  nuclei_only_on_deep_scan: true
+  nuclei_batching_enabled: true
+  nuclei_batch_window_hours: 72
+  nuclei_batch_count: 3
+  nuclei_max_hosts_per_domain: 25
+  nuclei_wall_timeout_seconds: 180
+  nuclei_only_on_new_live_hosts: false
+  nuclei_only_on_interesting_hosts: true
+  nuclei_templates_dir: /root/nuclei-templates
+  nuclei_severities: [critical, high, medium]
+  nuclei_profile_tags:
+    baseline: [exposure, misconfig, cve, takeover, panel]
+    api: [api, graphql, swagger, openapi]
+    auth: [auth, token, jwt, oauth]
+    cloud: [s3, aws, azure, gcp, bucket]
+    tech: [wordpress, spring, nginx, apache, iis]
+  nuclei_rate_limit: 20
+  nuclei_concurrency: 5
+  nuclei_bulk_size: 25
+  nuclei_timeout_seconds: 10
+  nuclei_retries: 1
+  nuclei_dast_enabled: false
+  nuclei_dast_wall_timeout_seconds: 180
+  nuclei_dast_max_urls_per_domain: 50
+  nuclei_dast_rate_limit: 10
+  nuclei_dast_concurrency: 3
+  nuclei_dast_severities: [critical, high, medium]
+
+  dalfox_enabled: false
+  dalfox_only_on_deep_scan: false
+  dalfox_only_new_urls: true
+  dalfox_max_urls_per_domain: 40
+  dalfox_worker: 3
+  dalfox_delay_ms: 200
+  dalfox_timeout_seconds: 10
+  dalfox_skip_bav: true
+
+  hidden_param_discovery_enabled: false
+  hidden_param_max_urls_per_domain: 25
+  hidden_param_max_params_per_url: 8
+  hidden_param_words: [id, user_id, account_id, org_id, tenant_id, workspace_id, project_id, file_id, url, redirect, redirect_uri, callback, next, return_to, q, query, search, debug, admin, token, api_key]
+
+  ai_triage_enabled: true
+  ai_triage_alert_min_priority: high
+  ai_triage_startup_backfill_limit: 250
+  ai_triage_high_signal_keywords: [admin, internal, debug, graphql, swagger, openapi, actuator, config, backup, token, auth, login, sso, redirect, callback, upload, import, export]
+  ai_triage_optional_openai: false
+  attack_playbooks_enabled: true
+  bug_jobs_enabled: true
+  bug_jobs_auto_enqueue: true
+  bug_jobs_high_signal_only: true
+  bug_jobs_max_per_asset: 1
+  bug_jobs_collapse_endpoint_jobs: true
+  bug_jobs_enqueue_playbooks: true
+  bug_jobs_playbook_min_priority: 85
+  bug_jobs_dashboard_min_priority: 85
+  # Keep initial scans local. Enqueue one DOM/postMessage review per unique
+  # root-domain + SHA-256 body only when it is new or changed in a delta scan.
+  bug_jobs_dom_review_all_new_js: false
+  bug_jobs_dom_review_all_delta_js: true
+  bug_jobs_dom_review_new_js_priority: 90
+  bug_jobs_dom_review_ignore_queue_caps: true
+  bug_jobs_alert_min_confidence: 75
+  bug_jobs_live_host_min_priority: high
+  bug_jobs_auto_ffuf_enabled: true
+  bug_jobs_auto_ffuf_on_new_live_hosts: true
+  bug_jobs_auto_ffuf_on_fingerprint_change: true
+  bug_jobs_auto_ffuf_on_high_signal_hosts: true
+  bug_jobs_auto_ffuf_min_priority: medium
+  bug_jobs_auto_ffuf_new_live_host_requires_high_signal: true
+  bug_jobs_auto_ffuf_max_per_domain_per_scan: 25
+  bug_jobs_auto_ffuf_lane: bug_jobs_fast
+  bug_jobs_auto_ffuf_wordlist: /app/wordlists/bug-jobs-panels-auth.txt
+  bug_jobs_auto_ffuf_match_status: [200, 204, 301, 302, 307, 308, 401, 403, 405, 500]
+  bug_jobs_auto_ffuf_max_hits_per_fingerprint: 1
+  bug_jobs_auto_ffuf_respect_domain_enable: false
+  codex_worker_enabled: false
+  codex_worker_dry_run: true
+  codex_worker_domain_allowlist: []
+  codex_worker_job_types: []
+  # Safe 24/7 defaults: process only fresh, high-signal work and leave the
+  # historical backlog visible in the dashboard for manual review.
+  codex_worker_new_only: true
+  codex_worker_max_job_age_hours: 48
+  codex_worker_min_priority: 90
+  codex_worker_parallelism: 2
+  codex_worker_max_jobs_per_day: 40
+  codex_worker_max_jobs_per_domain_per_day: 3
+  codex_worker_test_mode: false
+  codex_worker_test_max_jobs: 2
+  codex_worker_test_job_types: []
+  codex_worker_max_initial_skills: 2
+  codex_worker_max_attempts: 2
+  codex_worker_cooldown_seconds: 60
+  codex_worker_timeout_seconds: 900
+  codex_worker_stale_running_minutes: 60
+  codex_worker_stale_recovery_interval_seconds: 300
+  codex_worker_quota_backoff_seconds: 43200
+  codex_worker_auth_backoff_seconds: 86400
+  codex_worker_rate_limit_backoff_seconds: 3600
+  codex_worker_transient_backoff_seconds: 900
+  codex_worker_heartbeat_seconds: 30
+  codex_worker_health_max_age_seconds: 180
+  codex_worker_sandbox: workspace-write
+  codex_worker_discord_alerts_enabled: true
+  codex_worker_discord_alert_statuses: [confirmed]
+  codex_worker_discord_alert_min_confidence: 75
+  codex_worker_discord_review_alerts_enabled: true
+  codex_worker_discord_review_alert_webhook_url: ""
+  codex_worker_discord_review_alert_username: Recon Codex Leads
+  codex_worker_discord_review_alert_min_confidence: 50
+  codex_worker_discord_review_alert_require_signal: false
+  codex_worker_discord_review_alert_outcomes: [STRONG_CANDIDATE, NEEDS_MANUAL_REVIEW, BLOCKED]
+  codex_worker_discord_review_alert_priorities: [medium, high, critical]
+  codex_worker_discord_review_alert_max_per_day: 30
+  codex_worker_discord_review_alert_max_per_domain_per_day: 5
+  codex_worker_discord_review_alert_dedupe_days: 30
+  codex_worker_idle_seconds: 20
+  codex_worker_output_dir: /app/exports/bug_jobs
+  codex_worker_workspace: /app/exports/bug_jobs_workspace
+  # Every 12 hours, enqueue one Codex review per domain that has a completed
+  # non-first-run delta snapshot with new data. Add delta_intelligence_review
+  # to codex_worker_job_types when an allowlist is configured.
+  delta_intelligence_enabled: true
+  delta_intelligence_interval_seconds: 43200
+  delta_intelligence_bootstrap_hours: 12
+  delta_intelligence_max_domains_per_run: 500
+  delta_intelligence_max_db_rows: 250
+  delta_intelligence_state_path: /root/codex_artifacts/bug-jobs/results/.delta_intelligence_state.json
+  codex_bin: codex
+  codex_worker_model: gpt-5.6-sol
+  codex_worker_ignore_user_config: false
+  codex_worker_reasoning_effort: high
+  # Optional custom Codex model provider. Keep these empty to use the default
+  # OpenAI provider. Put provider credentials in a mode-600 env file.
+  codex_worker_model_provider: ""
+  codex_worker_provider_name: ""
+  codex_worker_provider_base_url: ""
+  codex_worker_provider_env_key: ""
+  codex_worker_provider_wire_api: responses
+  codex_worker_provider_requires_openai_auth: false
+  codex_worker_passthrough_env: [PGPASSWORD, CODEX_ARTIFACT_ROOT]
+  change_monitors_enabled: true
+  change_monitor_concurrency: 1
+
+  port_scan_enabled: true
+  port_scan_workers: 5
+  port_scan_worker_idle_seconds: 10
+  port_scan_max_ips_per_domain: 500
+  port_scan_skip_cdn_ips: true
+  port_scan_rate: 1000
+  port_scan_retries: 1
+  port_scan_connect_timeout_ms: 1000
+  port_scan_per_ip_timeout_seconds: 480
+  port_scan_naabu_timeout_seconds: 240
+  port_scan_nmap_timeout_seconds: 180
+  port_scan_nmap_host_timeout_seconds: 150
+  port_scan_lease_seconds: 600
+  port_scan_heartbeat_seconds: 30
+  port_scan_require_current_dns: true
+  port_scan_dns_validation_timeout_seconds: 5
+  port_scan_dns_validation_max_hosts: 25
+  port_scan_full_enabled: false
+  infrastructure_dns_timeout_seconds: 3
+  infrastructure_dns_threads: 50
+  infrastructure_dns_rate_limit: 200
+  infrastructure_resolution_budget_seconds: 180
+  port_scan_quick_ports: [21, 22, 23, 25, 53, 80, 81, 110, 111, 135, 139, 143, 389, 443, 445, 465, 587, 636, 873, 993, 995, 1433, 1521, 2049, 2181, 2375, 2376, 3000, 3306, 3389, 5000, 5432, 5601, 5672, 5900, 5985, 5986, 6379, 6443, 7001, 8000, 8008, 8080, 8081, 8088, 8443, 8888, 9000, 9090, 9092, 9200, 9300, 10250, 11211, 15672, 27017]
+
+  common_paths:
+    - /.well-known/security.txt
+    - /.well-known/change-password
+    - /security.txt
+    - /admin
+    - /admin/
+    - /administrator
+    - /backend
+    - /manage
+    - /manager
+    - /control
+    - /console
+    - /dashboard
+    - /internal
+    - /private
+    - /api
+    - /api/v1
+    - /api/v2
+    - /api/v3
+    - /api/graphql
+    - /gql
+    - /graphql
+    - /graphiql
+    - /graphql/console
+    - /playground
+    - /api/playground
+    - /.env
+    - /.env.local
+    - /.env.production
+    - /.env.backup
+    - /.env.bak
+    - /env
+    - /config
+    - /config.json
+    - /config.js
+    - /configuration
+    - /settings
+    - /settings.json
+    - /.git/HEAD
+    - /.git/config
+    - /.svn/entries
+    - /.hg/hgrc
+    - /.DS_Store
+    - /.htaccess
+    - /.htpasswd
+    - /robots.txt
+    - /sitemap.xml
+    - /sitemap_index.xml
+    - /swagger
+    - /swagger/
+    - /swagger-ui
+    - /swagger-ui/
+    - /swagger-ui.html
+    - /swagger.json
+    - /swagger.yaml
+    - /api/swagger
+    - /api/swagger.json
+    - /api/v1/swagger.json
+    - /api/v2/swagger.json
+    - /v1/swagger
+    - /v2/swagger
+    - /v3/swagger
+    - /openapi
+    - /openapi.json
+    - /openapi.yaml
+    - /api-docs
+    - /api-docs/
+    - /api-docs/swagger.json
+    - /v2/api-docs
+    - /docs
+    - /docs/
+    - /redoc
+    - /api/redoc
+    - /health
+    - /healthz
+    - /ready
+    - /readyz
+    - /live
+    - /livez
+    - /status
+    - /metrics
+    - /debug
+    - /debug/vars
+    - /phpinfo.php
+    - /server-status
+    - /actuator
+    - /actuator/health
+    - /actuator/env
+    - /actuator/configprops
+    - /actuator/mappings
+    - /actuator/metrics
+    - /backup
+    - /backup.zip
+    - /backup.tar.gz
+    - /backups
+    - /dump.sql
+    - /database.sql
+    - /db.sql
+    - /logs
+    - /log
+    - /debug.log
+    - /error.log
+    - /access.log
+    - /storage/logs/laravel.log
+    - /vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php
+    - /wp-admin/
+    - /wp-login.php
+
+database:
+  host: postgres
+  port: 5432
+  name: recon_framework
+  user: recon_user
+  password: ${RECON_DB_PASSWORD}
+
+redis:
+  host: redis
+  port: 6379
+  enabled: true
+
+dashboard:
+  auth:
+    enabled: false
+    username: recon
+    password: ""
+
+alerts:
+  webhook_urls: []
+  summary_preview_limit: 20
+  first_run_summary_preview_limit: 25
+  discord:
+    enabled: false
+    webhook_url: ""
+    username: Recon Framework
+    max_message_parts: 6
+    message_delay_seconds: 1.0
+  shodan_discord:
+    enabled: false
+    webhook_url: ""
+    username: Recon Shodan
+    max_message_parts: 6
+    message_delay_seconds: 1.0
+  smtp:
+    enabled: false
+    server: ""
+    port: 587
+    username: ""
+    password: ""
+    from_email: ""
+    to_emails: []
+
+retention:
+  alerts_days: 30
+  snapshots_days: 120
+  screenshots_days: 60
+  fingerprints_days: 120
+  maintenance_interval_minutes: 60
+
+tools:
+  assetfinder: assetfinder
+  subfinder: subfinder
+  findomain: findomain
+  amass: amass
+  sublist3r: sublist3r
+  dnsx: dnsx
+  httpx: httpx
+  naabu: naabu
+  nmap: nmap
+  waybackurls: waybackurls
+  gau: gau
+  katana: katana
+  hakrawler: hakrawler
+  ffuf: ffuf
+  nuclei: nuclei
+  dalfox: dalfox
+  trufflehog: trufflehog
+  gowitness: gowitness
+  unfurl: unfurl
+  anew: anew
